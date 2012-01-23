@@ -34,17 +34,10 @@ namespace imup
     {
         ui->setupUi(this);
 
-//        QVariantList vl;
-//        ImageFile f("/home/athantor/IMG_3801.JPG");
-//        qDebug() << f.getPreviewIamge().size() << f.getMetaData(md, vl) << f.getMetaData(md, qs);
-
-//        QLabel *ql = new QLabel(ui->centralWidget);
-//        ql->setPixmap(QPixmap::fromImage(f.getPreviewIamge()));
-
-     //   imup::CommonsImgObject f();
-      //  qDebug() << f.cmsFilename() ;
-
-        ui->ScrollLay->addWidget(new CommonsImgWidget("/home/athantor/IMG_6222.JPG"));
+#ifdef QT_DEBUG
+        for(int i = 1; i < QApplication::arguments().size(); ++i)
+            ui->ScrollLay->addWidget(new CommonsImgWidget(QApplication::arguments().at(i)));
+#endif
 
     }
 

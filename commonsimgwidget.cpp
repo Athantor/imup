@@ -54,8 +54,17 @@ namespace imup
 
         ui->MainGrpBox->setTitle(imf->getFileInfo().canonicalFilePath());
 
+        ui->UploadFilenameEdit->setText(imf->getFileInfo().fileName());
+
         ui->ThumbLbl->setPixmap(QPixmap::fromImage(imf->getPreviewIamge()));
         ui->ThumbLbl->setToolTip(makeThumbTooltipText());
+
+        ui->FileSourceEdit->setText(tr("{{own}}"));
+        ui->FileAuthorEdit->setText(img_obj->cmsAuthor());
+        ui->FileDtEdit->setDateTime(img_obj->cmsDateTime());
+
+        auto geo = img_obj->cmsGeo();
+        ui->GeoEdit->setText(QString("{{Location dec|%1|%2}}").arg(std::get<0>(geo) , 0, 'g', 8).arg(std::get<0>(geo), 0, 'g', 8));
     }
 
     QString CommonsImgWidget::makeThumbTooltipText()

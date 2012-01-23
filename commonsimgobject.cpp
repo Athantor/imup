@@ -75,7 +75,7 @@ namespace imup
 
     const QString &CommonsImgObject::cmsAuthor() const
     {
-        return cmsAuthor();
+        return cms_author;
     }
 
     void CommonsImgObject::setCmsAuthor(const QString &cfa)
