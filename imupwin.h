@@ -36,6 +36,7 @@ namespace imup
 
         protected:
             void changeEvent(QEvent *e);
+            void makeToolbarButtons();
 
         private:
             Ui::imupWin *ui;

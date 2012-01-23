@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>390</width>
-    <height>290</height>
+    <width>388</width>
+    <height>288</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -85,7 +85,17 @@
          </widget>
         </item>
         <item row="4" column="2">
-         <widget class="QDateTimeEdit" name="FileDtEdit"/>
+         <widget class="QDateTimeEdit" name="FileDtEdit">
+          <property name="displayFormat">
+           <string>yyyy-dd-MM HH:mm:ss</string>
+          </property>
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+          <property name="timeSpec">
+           <enum>Qt::OffsetFromUTC</enum>
+          </property>
+         </widget>
         </item>
         <item row="1" column="1">
          <widget class="QLabel" name="label_7">

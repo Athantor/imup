@@ -54,6 +54,24 @@
      <height>18</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <widget class="QMenu" name="menu_Save_project">
+     <property name="title">
+      <string>&amp;Save project</string>
+     </property>
+     <addaction name="actionSave"/>
+     <addaction name="actionSave_as"/>
+    </widget>
+    <addaction name="actionNew_project"/>
+    <addaction name="action_Open_project"/>
+    <addaction name="menu_Save_project"/>
+    <addaction name="separator"/>
+    <addaction name="action_Quit"/>
+   </widget>
+   <addaction name="menu_File"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -64,6 +82,80 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QToolBar" name="projectToolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QToolBar" name="miscToolbar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <action name="actionNew_project">
+   <property name="text">
+    <string>&amp;New project…</string>
+   </property>
+   <property name="statusTip">
+    <string>Create new project</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="action_Open_project">
+   <property name="text">
+    <string>&amp;Open project…</string>
+   </property>
+   <property name="statusTip">
+    <string>Open saved project</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="action_Quit">
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+   <property name="statusTip">
+    <string>Quit the application</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>S&amp;ave…</string>
+   </property>
+   <property name="statusTip">
+    <string>Save current project</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Sa&amp;ve as…</string>
+   </property>
+   <property name="statusTip">
+    <string>Save current project under different filename</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

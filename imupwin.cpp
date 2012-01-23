@@ -33,6 +33,7 @@ namespace imup
         ui(new Ui::imupWin)
     {
         ui->setupUi(this);
+        makeToolbarButtons();
 
 #ifdef QT_DEBUG
         for(int i = 1; i < QApplication::arguments().size(); ++i)
@@ -56,6 +57,14 @@ namespace imup
             default:
                 break;
         }
+    }
+
+    void imupWin::makeToolbarButtons()
+    {
+        ui->mainToolBar->addAction(ui->action_Quit);
+        ui->projectToolBar->addAction(ui->actionNew_project);
+        ui->projectToolBar->addAction(ui->action_Open_project);
+        ui->projectToolBar->addAction(ui->menu_Save_project->menuAction());
     }
 
 }
