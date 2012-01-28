@@ -19,6 +19,7 @@
 #define COMMONSIMGWIDGET_H
 
 #include <QtGui/QWidget>
+#include <QEvent>
 
 #include "commonsimgobject.h"
 
@@ -34,11 +35,42 @@ namespace imup
             Q_OBJECT
 
         public:
+            class CommonsImgWidgetEvent : public QEvent
+            {
+                public:
+                    typedef enum
+                    {
+                        DeleteRequested,
+                        MaxEvent
+                    } CustomType;
+
+                    CommonsImgWidgetEvent(CustomType c_type, CommonsImgWidget *sdr) : QEvent(QEvent::User),
+                        custom_type(c_type), sender_wgt(sdr)
+                    {
+                    }
+
+                    virtual CustomType customType() const
+                    {
+                        return custom_type;
+                    }
+
+                    virtual const CommonsImgWidget * senderWgt() const
+                    {
+                        return sender_wgt;
+                    }
+
+                protected:
+                    CustomType custom_type;
+                    CommonsImgWidget *sender_wgt;
+
+            };
+
             explicit CommonsImgWidget(CommonsImgObject *imob, QWidget *parent = 0);
             explicit CommonsImgWidget(const QString& filepath, QWidget *parent = 0);
             ~CommonsImgWidget();
 
             CommonsImgObject * getImgObj();
+            const CommonsImgObject * getImgObj() const ;
         protected:
             CommonsImgObject *img_obj;
 
@@ -47,6 +79,8 @@ namespace imup
         protected slots:
             virtual void setupFields();
             virtual QString makeThumbTooltipText();
+
+            virtual void requestDeletion();
 
         private:
             Ui::CommonsImgWidget *ui;

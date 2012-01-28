@@ -69,6 +69,21 @@ namespace imup
         return iobj;
     }
 
+    void UploadProject::removeCommonsImgObj(CommonsImgObject *obj)
+    {
+
+         QScopedPointer<QSettings> proj_setts(new QSettings(proj_path, QSettings::IniFormat));
+
+         int idx = -1;
+         if(known_objs.contains(obj->uuid()) && (idx = objs.indexOf(obj)) > -1)
+         {
+             proj_setts->remove(known_objs.value(obj->uuid()));
+             obj->deleteLater();
+
+             objs.removeAt(idx);
+         }
+    }
+
     void UploadProject::loadFromFile(bool clear, const QString & whe)
     {
         if(whe.isEmpty() == false)
@@ -135,6 +150,8 @@ namespace imup
                 imob->cmsCats() << cc;
 
             addCommonsImgObj(imob, false);
+
+            known_objs.insert(imob->uuid(), proj_setts->group());
 
             proj_setts->endGroup();
         }
@@ -208,6 +225,8 @@ namespace imup
         QVariantList geos;
         geos << std::get<0>(imob->fileGeo()) << std::get<1>(imob->fileGeo())<< std::get<2>(imob->fileGeo()) << std::get<3>(imob->fileGeo());
         proj_setts->setValue("file_geo", geos);
+
+        known_objs.insert(imob->uuid(), proj_setts->group());
 
         if(endgrp)
         {

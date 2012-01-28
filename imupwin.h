@@ -38,6 +38,8 @@ namespace imup
             explicit imupWin(QWidget *parent = 0);
             ~imupWin();
 
+            static imupWin* instance();
+
         public slots:
             bool saveProject();
             bool loadProject();
@@ -49,14 +51,18 @@ namespace imup
 
             void makeToolbarButtons();
 
+            virtual bool	event ( QEvent * e );
+
         protected slots:
             void addImageWidgetsFromProject();
+            void removeObject(CommonsImgWidget *imwgt);
 
         private:
             static const QString unsaved_proj_path;
             Ui::imupWin *ui;
             UploadProject *proj;
             QHash<QUuid, CommonsImgWidget*> wgtlist;
+            static imupWin* _intance;
 
             void connects();
             void lockIt(bool unl);

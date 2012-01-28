@@ -53,13 +53,15 @@ namespace imup {
             void addCommonsImgObj(CommonsImgObject * obj, bool write = true);
             CommonsImgObject * addCommonsImgObj(const QString &path);
 
+            void removeCommonsImgObj(CommonsImgObject* obj);
+
             void loadFromFile(bool clear = true, const QString & whe = QString());
             void saveToFile(CommonsImgObject* =0, const QString & whe = QString());
 
         protected:
             QString proj_path;
             QList<CommonsImgObject *> objs;
-            QSet<QUuid> known_objs;
+            QMap<QUuid, QString> known_objs;
             bool autosave;
 
             void clearObjs();

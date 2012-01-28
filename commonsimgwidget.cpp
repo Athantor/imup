@@ -15,6 +15,9 @@
    Krzysztof Kundzicz <athantor+cpp@athi.pl>
 */
 
+#include <QMessageBox>
+
+#include "imupwin.h"
 #include "commonsimgwidget.h"
 #include "ui_commonsimgwidget.h"
 
@@ -37,6 +40,8 @@ namespace imup
     {
         ui->setupUi(this);
         setupFields();
+
+        connect(ui->closeBtn, SIGNAL(clicked()), this, SLOT(requestDeletion()));
     }
 
     CommonsImgWidget::~CommonsImgWidget()
@@ -45,6 +50,11 @@ namespace imup
     }
 
     CommonsImgObject *CommonsImgWidget::getImgObj()
+    {
+        return img_obj;
+    }
+
+    const CommonsImgObject *CommonsImgWidget::getImgObj() const
     {
         return img_obj;
     }
@@ -97,5 +107,17 @@ namespace imup
                 .arg(imf->getFileInfo().lastModified().toString())
                 .arg(imf->getImageMetaData()->pixelWidth()).arg(imf->getImageMetaData()->pixelHeight())
                 .arg(imf->getImageMetaData()->pixelWidth() * imf->getImageMetaData()->pixelHeight() / 1e6, 0, 'g', 3);
+    }
+
+    void CommonsImgWidget::requestDeletion()
+    {
+        if(QMessageBox::question(this, tr("Remove?"), tr("Really remove „<strong>%1</strong>”?<br><br>You won't be able to undo this!")
+                                 .arg(img_obj->imageFile()->getFileInfo().canonicalFilePath()), QMessageBox::No| QMessageBox::Yes) == QMessageBox::No)
+        {
+            return;
+        }
+
+        CommonsImgWidgetEvent *evt =new CommonsImgWidgetEvent(CommonsImgWidgetEvent::DeleteRequested, this);
+        QApplication::postEvent(imupWin::instance(), evt);
     }
 }

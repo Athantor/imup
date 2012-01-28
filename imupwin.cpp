@@ -36,10 +36,13 @@
 namespace imup
 {
     const QString imupWin::unsaved_proj_path = QDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation)).absoluteFilePath("unsaved_project.ini");
+    imupWin* imupWin::_intance = 0;
 
     imupWin::imupWin(QWidget *parent) :
         QMainWindow(parent),  ui(new Ui::imupWin), proj(new UploadProject(this))
     {
+        imupWin::_intance = this;
+
         ui->setupUi(this);
         connects();
         makeToolbarButtons();
@@ -67,6 +70,11 @@ namespace imup
     {
         delete ui;
         lockIt(true);
+    }
+
+    imupWin *imupWin::instance()
+    {
+        return imupWin::_intance;
     }
 
     bool imupWin::saveProject()
@@ -182,6 +190,29 @@ namespace imup
         ui->projectToolBar->addAction(ui->menu_Save_project->menuAction());
     }
 
+    bool imupWin::event(QEvent *e)
+    {
+        if(e->type() == QEvent::User)
+        {
+            CommonsImgWidget::CommonsImgWidgetEvent * evt= dynamic_cast<CommonsImgWidget::CommonsImgWidgetEvent*>(e);
+            if(evt)
+            {
+                if(evt->customType() == CommonsImgWidget::CommonsImgWidgetEvent::DeleteRequested && evt->senderWgt() != 0)
+                {
+                    CommonsImgWidget *rmwgt = 0;
+                    if(evt->senderWgt()->getImgObj() != 0 && evt->senderWgt()->getImgObj()->uuid().isNull() == false
+                            && (rmwgt = wgtlist.value(evt->senderWgt()->getImgObj()->uuid(),0) ) != 0)
+                    {
+                        removeObject(rmwgt);
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     void imupWin::addImageWidgetsFromProject()
     {
         const QList<CommonsImgObject*> &objs = proj->objects();
@@ -195,6 +226,20 @@ namespace imup
                 wgtlist.insert(obj->uuid(), wgt);
             }
         }
+    }
+
+    void imupWin::removeObject(CommonsImgWidget *imwgt)
+    {
+        if(imwgt == 0)
+            return;
+
+        proj->removeCommonsImgObj(imwgt->getImgObj());
+
+        imwgt->hide();
+
+        wgtlist.remove(imwgt->getImgObj()->uuid());
+        imwgt->deleteLater();
+
     }
 
     void imupWin::connects()
