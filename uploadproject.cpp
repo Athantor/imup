@@ -193,8 +193,6 @@ namespace imup
             proj_setts->beginGroup(QString("file_%1").arg(objs.size()));
         }
 
-        qDebug() << proj_setts->group();
-
         proj_setts->setValue("file_path", imob->imageFile()->getFileInfo().absoluteFilePath());
         proj_setts->setValue("file_uuid", imob->uuid().toString());
 

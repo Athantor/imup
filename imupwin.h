@@ -19,6 +19,10 @@
 #define IMUPWIN_H
 
 #include <QtGui/QMainWindow>
+#include <QCloseEvent>
+
+#include "uploadproject.h"
+#include "commonsimgwidget.h"
 
 namespace Ui {
     class imupWin;
@@ -34,12 +38,28 @@ namespace imup
             explicit imupWin(QWidget *parent = 0);
             ~imupWin();
 
+        public slots:
+            bool saveProject();
+            bool loadProject();
+            bool newProject();
+
         protected:
             void changeEvent(QEvent *e);
+            virtual void	closeEvent ( QCloseEvent * event );
+
             void makeToolbarButtons();
 
+        protected slots:
+            void addImageWidgetsFromProject();
+
         private:
+            static const QString unsaved_proj_path;
             Ui::imupWin *ui;
+            UploadProject *proj;
+            QHash<QUuid, CommonsImgWidget*> wgtlist;
+
+            void connects();
+            void lockIt(bool unl);
     };
 }
 

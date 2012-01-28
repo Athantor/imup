@@ -15,49 +15,123 @@
    Krzysztof Kundzicz <athantor+cpp@athi.pl>
 */
 
+#include <signal.h>
+
 #include <QDebug>
 
-#include <QLabel>
 #include <QApplication>
+#include <QLabel>
+#include <QDesktopServices>
+#include <QFile>
+#include <QDir>
+#include <QMessageBox>
+#include <QFileDialog>
 
 #include "imupwin.h"
 #include "ui_imupwin.h"
 
 #include "commonsimgobject.h"
-#include "commonsimgwidget.h"
 #include "uploadproject.h"
 
 namespace imup
 {
+    const QString imupWin::unsaved_proj_path = QDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation)).absoluteFilePath("unsaved_project.ini");
+
     imupWin::imupWin(QWidget *parent) :
-        QMainWindow(parent),
-        ui(new Ui::imupWin)
+        QMainWindow(parent),  ui(new Ui::imupWin), proj(new UploadProject(this))
     {
         ui->setupUi(this);
+        connects();
         makeToolbarButtons();
 
-#ifdef QT_DEBUG
-//        UploadProject upp(this);
-//        upp.setProjectFilePath("/tmp/imup.ini");
+        lockIt(false);
 
+        //-----
 
-//        upp.loadFromFile();
-//        auto objs = upp.objects();
-//        foreach(CommonsImgObject *imob, objs)
-//            ui->ScrollLay->addWidget(new CommonsImgWidget(imob, this));
-
-
-//        for(int i = 1; i < QApplication::arguments().size(); ++i)
-//        {
-//            CommonsImgObject *imob = upp.addCommonsImgObj(QApplication::arguments().at(i));
-//            ui->ScrollLay->addWidget(new CommonsImgWidget(imob, this));
-//        }
-#endif
+        proj->setProjectFilePath(unsaved_proj_path);
+        QFileInfo qfi(unsaved_proj_path);
+                                  /* [meta]*/
+        if(qfi.exists() && qfi.size() > 6  &&
+                QMessageBox::question(this, tr("Rescue unsaved?"), tr("There seems to be an unsaved upload project "
+                                                                      "from prevoius session. Load it?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+        {
+            proj->loadFromFile(true);
+        }
+        else
+        {
+            proj->saveToFile();
+        }
     }
 
     imupWin::~imupWin()
     {
         delete ui;
+        lockIt(true);
+    }
+
+    bool imupWin::saveProject()
+    {
+        QString sp = QFileDialog::getSaveFileName(this, tr("Save project…"), QDir::homePath(), tr("Project files (*.ini) (*.ini)"));
+        if(sp.isEmpty() == false)
+        {
+            proj->saveToFile(0, sp);
+            QFile::remove(unsaved_proj_path);
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool imupWin::loadProject()
+    {
+        if(proj->objects().size() > 0 && proj->projectFilePath() == unsaved_proj_path)
+        {
+            if(QMessageBox::question(this, tr("Save unsaved?"), tr("There are unsaved changes. Do you wish to save them before opening other project?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+            {
+                if(saveProject() == false)
+                    return false;
+            }
+        }
+
+        QString qs = QFileDialog::getOpenFileName(this, tr("Open project…"), QDir::homePath(), tr("Project files (*.ini) (*.ini);;All files (*) (*)"));
+        if(qs.isEmpty())
+            return false;
+
+        wgtlist.clear();
+        proj->loadFromFile(true, qs);
+
+        addImageWidgetsFromProject();
+
+        return true;
+    }
+
+    bool imupWin::newProject()
+    {
+        if(proj->objects().size() > 0 && proj->projectFilePath() == unsaved_proj_path)
+        {
+            if(QMessageBox::question(this, tr("Save unsaved?"), tr("There are unsaved changes. Do you wish to save them before clearing project?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+            {
+                if(saveProject() == false)
+                    return false;
+            }
+        }
+
+        foreach(QWidget *qw, wgtlist.values())
+        {
+            qw->hide();
+            qw->deleteLater();
+        }
+
+        wgtlist.clear();
+        proj->deleteLater();
+
+        proj = new UploadProject(this);
+        proj->setProjectFilePath(unsaved_proj_path);
+
+        return true;
     }
 
     void imupWin::changeEvent(QEvent *e)
@@ -72,6 +146,34 @@ namespace imup
         }
     }
 
+    void imupWin::closeEvent(QCloseEvent *event)
+    {
+        if(proj->objects().size() > 0 && proj->projectFilePath() == unsaved_proj_path)
+        {
+            if(QMessageBox::question(this, tr("Save project"), tr("Do you wish to save this project under some fancy name, "
+                                                               "so you'll be able to return to it later?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+            {
+                if(saveProject() == false)
+                    event->ignore();
+            }
+            else
+            {
+                if(QMessageBox::warning(this, tr("Save project"), tr("Really quit?<br><br>All your work will be <strong>L O S T</strong>!"), QMessageBox::No|QMessageBox::Yes) == QMessageBox::No)
+                {
+                    event->ignore();
+                    return;
+                }
+                else
+                {
+                    proj->deleteLater();
+                    QFile::remove(unsaved_proj_path);
+                }
+            }
+        }
+
+        event->accept();
+    }
+
     void imupWin::makeToolbarButtons()
     {
         ui->mainToolBar->addAction(ui->action_Quit);
@@ -80,4 +182,60 @@ namespace imup
         ui->projectToolBar->addAction(ui->menu_Save_project->menuAction());
     }
 
+    void imupWin::addImageWidgetsFromProject()
+    {
+        const QList<CommonsImgObject*> &objs = proj->objects();
+
+        foreach(CommonsImgObject *obj, objs)
+        {
+            if(wgtlist.contains(obj->uuid()) == false)
+            {
+                CommonsImgWidget *wgt = new CommonsImgWidget(obj, this);
+                ui->ScrollLay->addWidget(wgt);
+                wgtlist.insert(obj->uuid(), wgt);
+            }
+        }
+    }
+
+    void imupWin::connects()
+    {
+        connect(ui->actionSave_as, SIGNAL(triggered()), this, SLOT(saveProject()));
+        connect(ui->action_Open_project, SIGNAL(triggered()), this, SLOT(loadProject()));
+        connect(ui->actionNew_project, SIGNAL(triggered()), this, SLOT(newProject()));
+
+        connect(ui->action_Quit, SIGNAL(triggered()), this, SLOT(close()));
+    }
+
+    void imupWin::lockIt(bool unl)
+    {
+        QDir dloc(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+        QScopedPointer<QSettings> lf(new QSettings(dloc.absoluteFilePath("LOCK.IT"), QSettings::IniFormat));
+
+        if(lf->allKeys().size() > 0)
+        {
+            int pid = lf->value("lock/pid", 0).toInt();
+
+            errno = 0;
+            if(pid > 0 && kill(pid, 0) == 0 && pid != QApplication::applicationPid())
+            {
+                if(!unl)
+                {
+                    if(QMessageBox::warning(this, tr("Warning"), tr("<strong>%1</strong> seems to be already running!<br><br>"
+                                                                    "Ignore and run anyway (can cause problems)?").arg(QApplication::applicationName()), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No)
+                    {
+                        close();
+                    }
+                }
+                else
+                {
+                    lf.reset(0);
+                    QFile::remove(lf->fileName());
+                }
+            }
+        }
+
+        if(!unl)
+            lf->setValue("lock/pid", QApplication::applicationPid());
+
+    }
 }
