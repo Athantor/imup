@@ -21,8 +21,19 @@
 namespace imup
 {
 
+    CommonsImgWidget::CommonsImgWidget(CommonsImgObject *imob, QWidget *parent)
+        : QWidget(parent), img_obj(imob), ui(new Ui::CommonsImgWidget)
+    {
+        commonSetup();
+    }
+
     CommonsImgWidget::CommonsImgWidget(const QString & filepath, QWidget *parent) :
-        QWidget(parent), img_obj(new CommonsImgObject(filepath)), ui(new Ui::CommonsImgWidget)
+        QWidget(parent), img_obj(new CommonsImgObject(filepath, this)), ui(new Ui::CommonsImgWidget)
+    {
+        commonSetup();
+    }
+
+    void CommonsImgWidget::commonSetup()
     {
         ui->setupUi(this);
         setupFields();
@@ -31,6 +42,11 @@ namespace imup
     CommonsImgWidget::~CommonsImgWidget()
     {
         delete ui;
+    }
+
+    CommonsImgObject *CommonsImgWidget::getImgObj()
+    {
+        return img_obj;
     }
 
     void CommonsImgWidget::changeEvent(QEvent *e)
@@ -61,10 +77,11 @@ namespace imup
 
         ui->FileSourceEdit->setText(tr("{{own}}"));
         ui->FileAuthorEdit->setText(img_obj->cmsAuthor());
-        ui->FileDtEdit->setDateTime(img_obj->cmsDateTime());
+        ui->FileDtEdit->setText(img_obj->cmsDateTime());
 
-        auto geo = img_obj->cmsGeo();
-        ui->GeoEdit->setText(QString("{{Location dec|%1|%2}}").arg(std::get<0>(geo) , 0, 'g', 8).arg(std::get<0>(geo), 0, 'g', 8));
+        //auto geo = img_obj->fileGeo();
+        // QString("{{Location dec|%1|%2}}").arg(std::get<0>(geo) , 0, 'g', 8).arg(std::get<0>(geo), 0, 'g', 8)
+        ui->GeoEdit->setText( img_obj-> cmsGeo() );
     }
 
     QString CommonsImgWidget::makeThumbTooltipText()
@@ -80,6 +97,5 @@ namespace imup
                 .arg(imf->getFileInfo().lastModified().toString())
                 .arg(imf->getImageMetaData()->pixelWidth()).arg(imf->getImageMetaData()->pixelHeight())
                 .arg(imf->getImageMetaData()->pixelWidth() * imf->getImageMetaData()->pixelHeight() / 1e6, 0, 'g', 3);
-
     }
 }

@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QDateTime>
 #include <QSet>
+#include <QUuid>
 
 #include "imagefile.h"
 
@@ -45,22 +46,29 @@ namespace imup
             virtual const QString& cmsDescription() const;
             virtual const QString& cmsLicense() const;
             virtual const QString& cmsAuthor() const;
-            virtual const QDateTime& cmsDateTime() const;
-            virtual const Geo_t& cmsGeo() const;
-            virtual Geo_t& cmsGeo();
+            virtual const QString& cmsDateTime() const;
+            virtual const QDateTime& fileDateTime() const;
+            virtual const QString& cmsGeo() const;
+            virtual const Geo_t& fileGeo() const;
+            virtual QString &cmsGeo();
 
             virtual const CCats_t& cmsCats() const;
             virtual CCats_t& cmsCats();
 
+            virtual const QUuid& uuid() const;
+
             virtual bool isValid();
 
         public slots:
-            virtual void setCmsGeo(double, double, double = NAN, double = NAN);
-            virtual void setCmsDateTime(const QDateTime&);
+            virtual void setCmsGeo(const QString& cgeo);
+            virtual void setFileGeo(double, double, double = NAN, double = NAN);
+            virtual void setCmsDateTime(const QString&);
+            virtual void setFileDateTime(const QDateTime&);
             virtual void setCmsAuthor(const QString&);
             virtual void setCmsLicense(const QString&);
             virtual void setCmsDescription(const QString&);
             virtual void setCmsFilename(const QString&);
+            virtual void setUuid(const QUuid& uuid = QUuid::createUuid());
 
         protected:
           ImageFile* img_file;
@@ -68,9 +76,12 @@ namespace imup
           QString cms_desc;
           QString cms_license;
           QString cms_author;
+          QString cms_dt;
           QDateTime cms_file_dt;
-          Geo_t cms_geo;
+          QString cms_geo;
+          Geo_t cms_file_geo;
           CCats_t cms_cats;
+          QUuid objUuid;
 
           virtual void fillFromMetaData();
           virtual double calcLonLat(quint8 mode);

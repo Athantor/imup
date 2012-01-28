@@ -34,9 +34,11 @@ namespace imup
             Q_OBJECT
 
         public:
+            explicit CommonsImgWidget(CommonsImgObject *imob, QWidget *parent = 0);
             explicit CommonsImgWidget(const QString& filepath, QWidget *parent = 0);
             ~CommonsImgWidget();
 
+            CommonsImgObject * getImgObj();
         protected:
             CommonsImgObject *img_obj;
 
@@ -48,6 +50,8 @@ namespace imup
 
         private:
             Ui::CommonsImgWidget *ui;
+
+            void commonSetup();
     };
 
 }

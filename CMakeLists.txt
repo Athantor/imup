@@ -19,15 +19,20 @@ SET(imup_SOURCES
 	main.cpp imupwin.cpp 
     imagefile.cpp 
     commonsimgobject.cpp 
-    commonsimgwidget.cpp )
+    commonsimgwidget.cpp
+    uploadproject.cpp
+ )
 
 SET(imup_HEADERS  imupwin.h 
     imagefile.h 
     commonsimgobject.h 
-    commonsimgwidget.h)
+    commonsimgwidget.h
+    uploadproject.h
+)
 
 SET(imup_UIS  imupwin.ui 
-    commonsimgwidget.ui)
+    commonsimgwidget.ui
+)
 
 QT4_WRAP_UI(imup_UIS_H ${imup_UIS})
 QT4_WRAP_CPP(imup_HEADERS_MOC ${imup_HEADERS})

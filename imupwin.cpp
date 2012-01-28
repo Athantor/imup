@@ -25,6 +25,7 @@
 
 #include "commonsimgobject.h"
 #include "commonsimgwidget.h"
+#include "uploadproject.h"
 
 namespace imup
 {
@@ -36,10 +37,22 @@ namespace imup
         makeToolbarButtons();
 
 #ifdef QT_DEBUG
-        for(int i = 1; i < QApplication::arguments().size(); ++i)
-            ui->ScrollLay->addWidget(new CommonsImgWidget(QApplication::arguments().at(i)));
-#endif
+//        UploadProject upp(this);
+//        upp.setProjectFilePath("/tmp/imup.ini");
 
+
+//        upp.loadFromFile();
+//        auto objs = upp.objects();
+//        foreach(CommonsImgObject *imob, objs)
+//            ui->ScrollLay->addWidget(new CommonsImgWidget(imob, this));
+
+
+//        for(int i = 1; i < QApplication::arguments().size(); ++i)
+//        {
+//            CommonsImgObject *imob = upp.addCommonsImgObj(QApplication::arguments().at(i));
+//            ui->ScrollLay->addWidget(new CommonsImgWidget(imob, this));
+//        }
+#endif
     }
 
     imupWin::~imupWin()

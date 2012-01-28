@@ -53,6 +53,11 @@ namespace imup
         cms_filename = cfn;
     }
 
+    void CommonsImgObject::setUuid(const QUuid &uuid)
+    {
+        objUuid = uuid;
+    }
+
     const QString &CommonsImgObject::cmsDescription() const
     {
         return cms_desc;
@@ -83,36 +88,51 @@ namespace imup
         cms_author = cfa;
     }
 
-    const QDateTime &CommonsImgObject::cmsDateTime() const
+    const QString &CommonsImgObject::cmsDateTime() const
+    {
+        return cms_dt;
+    }
+
+    const QDateTime &CommonsImgObject::fileDateTime() const
     {
         return cms_file_dt;
     }
 
-    void CommonsImgObject::setCmsDateTime(const QDateTime &cfdt)
+    void CommonsImgObject::setFileDateTime(const QDateTime &cfdt)
     {
         cms_file_dt = cfdt;
     }
 
-    const CommonsImgObject::Geo_t &CommonsImgObject::cmsGeo() const
+    const QString &CommonsImgObject::cmsGeo() const
     {
         return cms_geo;
     }
 
-    CommonsImgObject::Geo_t &CommonsImgObject::cmsGeo()
+    QString &CommonsImgObject::cmsGeo()
     {
         return cms_geo;
     }
 
-    void CommonsImgObject::setCmsGeo(double lat, double lon, double alt, double dir)
+    const CommonsImgObject::Geo_t &CommonsImgObject::fileGeo() const
     {
-        cms_geo = Geo_t(lat, lon, alt, dir);
+        return cms_file_geo;
+    }
+
+    void CommonsImgObject::setFileGeo(double lat, double lon, double alt, double dir)
+    {
+        cms_file_geo = Geo_t(lat, lon, alt, dir);
 
         if(qAbs(lat) > 90)
-            std::get<0>(cms_geo) = NAN;
+            std::get<0>(cms_file_geo) = NAN;
         if(qAbs(lon) > 180)
-            std::get<1>(cms_geo) = NAN;
+            std::get<1>(cms_file_geo) = NAN;
         if(dir < 0 || dir > 360)
-            std::get<3>(cms_geo) = NAN;
+            std::get<3>(cms_file_geo) = NAN;
+    }
+
+    void CommonsImgObject::setCmsDateTime(const QString & cdt)
+    {
+        cms_dt = cdt;
     }
 
     const CommonsImgObject::CCats_t &CommonsImgObject::cmsCats() const
@@ -125,9 +145,19 @@ namespace imup
         return cms_cats;
     }
 
+    const QUuid &CommonsImgObject::uuid() const
+    {
+        return objUuid;
+    }
+
     bool CommonsImgObject::isValid()
     {
         return imageFile() != 0 && imageFile()->getFileInfo().exists() && imageFile()->getFileInfo().isReadable();
+    }
+
+    void CommonsImgObject::setCmsGeo(const QString &cgeo)
+    {
+        cms_geo = cgeo;
     }
 
     void CommonsImgObject::fillFromMetaData()
@@ -139,7 +169,7 @@ namespace imup
         cms_file_dt = img_file->getFileInfo().created();
         img_file->getMetaData("Exif.Photo.DateTimeOriginal", qvl);
         if(qvl.size() > 0)
-            setCmsDateTime(cms_file_dt = qvl.at(0).toDateTime());
+            setFileDateTime(cms_file_dt = qvl.at(0).toDateTime());
 
         qvl.clear();
 
@@ -153,11 +183,11 @@ namespace imup
 
         //----
 
-        setCmsGeo(calcLonLat(0), calcLonLat(1), calcLonLat(2), calcLonLat(3));
+        setFileGeo(calcLonLat(0), calcLonLat(1), calcLonLat(2), calcLonLat(3));
 
         //----
 
-        qDebug() << cms_file_dt <<cms_author << std::get<0>(cmsGeo()) << std::get<1>(cmsGeo()) << std::get<2>(cmsGeo()) << std::get<3>(cmsGeo());
+        qDebug() << cms_file_dt <<cms_author << std::get<0>(fileGeo()) << std::get<1>(fileGeo()) << std::get<2>(fileGeo()) << std::get<3>(fileGeo());
     }
 
     //mode: 0 lat; 1: lon; 2: alt; 3: dor

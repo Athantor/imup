@@ -77,23 +77,10 @@
         <item row="4" column="1">
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>Date &amp;&amp; time:</string>
+           <string>Date &amp; time:</string>
           </property>
           <property name="buddy">
            <cstring>FileDtEdit</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QDateTimeEdit" name="FileDtEdit">
-          <property name="displayFormat">
-           <string>yyyy-dd-MM HH:mm:ss</string>
-          </property>
-          <property name="calendarPopup">
-           <bool>true</bool>
-          </property>
-          <property name="timeSpec">
-           <enum>Qt::OffsetFromUTC</enum>
           </property>
          </widget>
         </item>
@@ -174,6 +161,16 @@
           </property>
          </widget>
         </item>
+        <item row="4" column="2">
+         <widget class="QLineEdit" name="FileDtEdit"/>
+        </item>
+        <item row="4" column="3">
+         <widget class="QPushButton" name="pushButton_3">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
@@ -186,7 +183,6 @@
   <tabstop>FileDescTxtEdit</tabstop>
   <tabstop>FileSourceEdit</tabstop>
   <tabstop>FileAuthorEdit</tabstop>
-  <tabstop>FileDtEdit</tabstop>
   <tabstop>GeoEdit</tabstop>
   <tabstop>FileLicenseCbx</tabstop>
   <tabstop>pushButton</tabstop>
