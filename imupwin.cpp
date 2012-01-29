@@ -166,11 +166,8 @@ namespace imup
 
     void imupWin::addFiles()
     {
-        QStringList flt = global_setts.value("files/types_filter").toStringList();
-        QString flttxt;
+        QString flttxt = tr("Images (%1) (%1);;All files (*.*) (*)").arg(global_setts.value("files/types_filter").toStringList().join(" "));
 
-        foreach(const QString &f, flt)
-            flttxt += QString("%1 (%1);;").arg(f);
 
         QStringList fls = QFileDialog::getOpenFileNames(this, tr("Select files…"), QDir::homePath(), flttxt);
         if(fls.empty() == false)
@@ -375,7 +372,7 @@ namespace imup
         if(global_setts.contains("files/types_filter") == false)
         {
             QStringList ft;
-            ft  << "*.jpg" << "*.jpeg" << ".png" << ".bmp" << ".tif" << ".tiff" << ".gif";
+            ft  << "*.jpg" << "*.jpeg" << "*.png" << "*.bmp" << "*.tif" << "*.tiff" << "*.gif";
             global_setts.setValue("files/types_filter", ft);
         }
     }
