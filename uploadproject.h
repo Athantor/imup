@@ -24,7 +24,9 @@
 #include <QSettings>
 #include <QSet>
 #include <QUuid>
+#include <QEvent>
 
+#include "imageloader.h"
 #include "commonsimgobject.h"
 
 namespace imup {
@@ -38,6 +40,23 @@ namespace imup {
             {
                 public:
                     UploadProjectError(const QString& msg) : std::runtime_error(msg.toStdString()) {}
+            };
+
+            class UploadProjectEvent : public QEvent
+            {
+                public:
+                    typedef enum
+                    {
+                        FileLoaded,
+                        Invalid
+                    } EvtType;
+
+                    UploadProjectEvent(EvtType et, CommonsImgObject *ob =0) : QEvent(QEvent::User), evt_type(et),
+                        cms_obj(ob)
+                    {}
+
+                    const EvtType evt_type;
+                    CommonsImgObject *cms_obj;
             };
 
             explicit UploadProject(QObject *parent = 0);
@@ -62,12 +81,26 @@ namespace imup {
             QString proj_path;
             QList<CommonsImgObject *> objs;
             QMap<QUuid, QString> known_objs;
+            QHash<QString, QString> known_objs_p;
+            ImageLoader *imldr;
             bool autosave;
+            QSharedPointer<QSettings> proj_setts;
 
             void clearObjs();
-            void saveObjToFile(QSharedPointer<QSettings> proj_setts, const CommonsImgObject *imob);
+            void saveObjToFile(const CommonsImgObject *imob);
+            void loadObjFromFile(const QUuid & uuid, CommonsImgObject *imob);
 
             static bool checkDestFilePath(const QString&);
+
+            virtual bool event(QEvent *);
+
+
+        private:
+            Q_DISABLE_COPY(UploadProject);
+
+
+        signals:
+            void projectLoaded();
     };
 }
 

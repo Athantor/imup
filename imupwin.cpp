@@ -39,9 +39,12 @@ namespace imup
     imupWin* imupWin::_intance = 0;
 
     imupWin::imupWin(QWidget *parent) :
-        QMainWindow(parent),  ui(new Ui::imupWin), proj(new UploadProject(this))
+        QMainWindow(parent),  ui(new Ui::imupWin), proj(new UploadProject(this)), imloader(0)
     {
         imupWin::_intance = this;
+
+        installEventFilter(this);
+        validateSetts();
 
         ui->setupUi(this);
         connects();
@@ -53,7 +56,7 @@ namespace imup
 
         proj->setProjectFilePath(unsaved_proj_path);
         QFileInfo qfi(unsaved_proj_path);
-                                  /* [meta]*/
+        /* [meta]*/
         if(qfi.exists() && qfi.size() > 6  &&
                 QMessageBox::question(this, tr("Rescue unsaved?"), tr("There seems to be an unsaved upload project "
                                                                       "from prevoius session. Load it?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
@@ -75,6 +78,11 @@ namespace imup
     imupWin *imupWin::instance()
     {
         return imupWin::_intance;
+    }
+
+    const QSettings &imupWin::getSetts() const
+    {
+        return global_setts;
     }
 
     bool imupWin::saveProject()
@@ -111,8 +119,6 @@ namespace imup
         wgtlist.clear();
         proj->loadFromFile(true, qs);
 
-        addImageWidgetsFromProject();
-
         return true;
     }
 
@@ -142,6 +148,61 @@ namespace imup
         return true;
     }
 
+    void imupWin::addFileObject(CommonsImgObject * cms_o)
+    {
+        if(wgtlist.contains(cms_o->uuid()) == false)
+        {
+            if(cms_o->parent() != proj)
+            {
+                proj->addCommonsImgObj(cms_o);
+                cms_o->setParent(proj);
+            }
+
+            CommonsImgWidget *wgt = new CommonsImgWidget(cms_o, this);
+            ui->ScrollLay->addWidget(wgt);
+            wgtlist.insert(cms_o->uuid(), wgt);
+        }
+    }
+
+    void imupWin::addFiles()
+    {
+        QStringList flt = global_setts.value("files/types_filter").toStringList();
+        QString flttxt;
+
+        foreach(const QString &f, flt)
+            flttxt += QString("%1 (%1);;").arg(f);
+
+        QStringList fls = QFileDialog::getOpenFileNames(this, tr("Select files…"), QDir::homePath(), flttxt);
+        if(fls.empty() == false)
+        {
+            if(imloader)
+            {
+                imloader ->terminate();
+                imloader->deleteLater();
+            }
+
+            imloader = new ImageLoader(fls, QHash<QString, QUuid>(), this);
+            imloader->start();
+        }
+    }
+
+    void imupWin::addDirectory()
+    {
+        QString the_dir = QFileDialog::getExistingDirectory(this, tr("Select directory…"), QDir::homePath());
+
+        if(the_dir.isEmpty() == false)
+        {
+            if(imloader)
+            {
+                imloader ->terminate();
+                imloader->deleteLater();
+            }
+
+            imloader = new ImageLoader(the_dir, true, this);
+            imloader->start();
+        }
+    }
+
     void imupWin::changeEvent(QEvent *e)
     {
         QMainWindow::changeEvent(e);
@@ -159,7 +220,7 @@ namespace imup
         if(proj->objects().size() > 0 && proj->projectFilePath() == unsaved_proj_path)
         {
             if(QMessageBox::question(this, tr("Save project"), tr("Do you wish to save this project under some fancy name, "
-                                                               "so you'll be able to return to it later?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+                                                                  "so you'll be able to return to it later?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
             {
                 if(saveProject() == false)
                     event->ignore();
@@ -188,14 +249,19 @@ namespace imup
         ui->projectToolBar->addAction(ui->actionNew_project);
         ui->projectToolBar->addAction(ui->action_Open_project);
         ui->projectToolBar->addAction(ui->menu_Save_project->menuAction());
+        ui->projectToolBar->addSeparator();
+        ui->projectToolBar->addAction(ui->menuAdd->menuAction());
     }
 
-    bool imupWin::event(QEvent *e)
+    bool imupWin::eventFilter(QObject *, QEvent *e)
     {
         if(e->type() == QEvent::User)
         {
-            CommonsImgWidget::CommonsImgWidgetEvent * evt= dynamic_cast<CommonsImgWidget::CommonsImgWidgetEvent*>(e);
-            if(evt)
+            CommonsImgWidget::CommonsImgWidgetEvent * evt= 0; ;
+            ImageLoader::ImageLoaderEvent * ilevt = 0;
+            UploadProject::UploadProjectEvent *upevt = 0;
+
+            if( (evt = dynamic_cast<CommonsImgWidget::CommonsImgWidgetEvent*>(e)))
             {
                 if(evt->customType() == CommonsImgWidget::CommonsImgWidgetEvent::DeleteRequested && evt->senderWgt() != 0)
                 {
@@ -206,6 +272,25 @@ namespace imup
                         removeObject(rmwgt);
                         return true;
                     }
+                }
+            }
+            else if((ilevt = dynamic_cast<ImageLoader::ImageLoaderEvent*>(e)))
+            {
+                if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::ObjectCreated)
+                {
+                    addFileObject(ilevt->cms_obj);
+                    e->accept();
+                    return true;
+                }
+            }
+            else if((upevt = dynamic_cast<UploadProject::UploadProjectEvent*>(e)))
+            {
+                if(upevt->evt_type == UploadProject::UploadProjectEvent::FileLoaded)
+                {
+                    addFileObject(upevt->cms_obj);
+
+                    upevt->accept();
+                    return true;
                 }
             }
         }
@@ -219,12 +304,7 @@ namespace imup
 
         foreach(CommonsImgObject *obj, objs)
         {
-            if(wgtlist.contains(obj->uuid()) == false)
-            {
-                CommonsImgWidget *wgt = new CommonsImgWidget(obj, this);
-                ui->ScrollLay->addWidget(wgt);
-                wgtlist.insert(obj->uuid(), wgt);
-            }
+            addFileObject(obj);
         }
     }
 
@@ -244,9 +324,15 @@ namespace imup
 
     void imupWin::connects()
     {
+
+        connect(proj, SIGNAL(projectLoaded()), this, SLOT(addImageWidgetsFromProject()));
+
         connect(ui->actionSave_as, SIGNAL(triggered()), this, SLOT(saveProject()));
         connect(ui->action_Open_project, SIGNAL(triggered()), this, SLOT(loadProject()));
         connect(ui->actionNew_project, SIGNAL(triggered()), this, SLOT(newProject()));
+
+        connect(ui->actionFile, SIGNAL(triggered()), this, SLOT(addFiles()));
+        connect(ui->actionDirectory, SIGNAL(triggered()),this, SLOT(addDirectory()));
 
         connect(ui->action_Quit, SIGNAL(triggered()), this, SLOT(close()));
     }
@@ -282,5 +368,15 @@ namespace imup
         if(!unl)
             lf->setValue("lock/pid", QApplication::applicationPid());
 
+    }
+
+    void imupWin::validateSetts()
+    {
+        if(global_setts.contains("files/types_filter") == false)
+        {
+            QStringList ft;
+            ft  << "*.jpg" << "*.jpeg" << ".png" << ".bmp" << ".tif" << ".tiff" << ".gif";
+            global_setts.setValue("files/types_filter", ft);
+        }
     }
 }

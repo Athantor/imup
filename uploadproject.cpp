@@ -19,19 +19,28 @@
 
 #include <QTextCodec>
 #include <QStringList>
+#include <QApplication>
 
 #include "uploadproject.h"
 
 namespace imup
 {
     UploadProject::UploadProject(QObject *parent) :
-        QObject(parent)
+        QObject(parent), imldr(0), proj_setts(0)
     {
     }
 
     UploadProject::~UploadProject()
     {
         clearObjs();
+        if(imldr)
+        {
+            if(imldr->isRunning())
+                imldr->terminate();
+
+            imldr->deleteLater();
+            imldr = 0;
+        }
     }
 
     const QList<CommonsImgObject*>& UploadProject::objects() const
@@ -71,17 +80,19 @@ namespace imup
 
     void UploadProject::removeCommonsImgObj(CommonsImgObject *obj)
     {
+        if(!proj_setts || proj_setts->fileName() != proj_path)
+            proj_setts = QSharedPointer<QSettings>(new QSettings(proj_path, QSettings::IniFormat));
 
-         QScopedPointer<QSettings> proj_setts(new QSettings(proj_path, QSettings::IniFormat));
+        int idx = -1;
+        if(known_objs.contains(obj->uuid()) && (idx = objs.indexOf(obj)) > -1)
+        {
+            proj_setts->remove(known_objs.value(obj->uuid()));
+            obj->deleteLater();
 
-         int idx = -1;
-         if(known_objs.contains(obj->uuid()) && (idx = objs.indexOf(obj)) > -1)
-         {
-             proj_setts->remove(known_objs.value(obj->uuid()));
-             obj->deleteLater();
+            objs.removeAt(idx);
+        }
 
-             objs.removeAt(idx);
-         }
+        proj_setts.clear();
     }
 
     void UploadProject::loadFromFile(bool clear, const QString & whe)
@@ -89,7 +100,8 @@ namespace imup
         if(whe.isEmpty() == false)
             proj_path = whe;
 
-        QScopedPointer<QSettings> proj_setts(new QSettings(proj_path, QSettings::IniFormat));
+        if(!proj_setts || proj_setts->fileName() != proj_path)
+            proj_setts = QSharedPointer<QSettings>(new QSettings(proj_path, QSettings::IniFormat));
 
         if(proj_setts->status() != QSettings::NoError)
         {
@@ -115,46 +127,35 @@ namespace imup
             clearObjs();
 
         const quint64 files = proj_setts->value("meta/file_count", 0).toULongLong();
+        QStringList filelist;
+        QHash<QString, QUuid> uuids;
 
         for(quint64 i = 0; i < files; ++i)
         {
             const QString &grpn = QString("file_%1").arg(i+1);
-
             if(proj_setts->contains(grpn + "/file_path") == false)
                 continue;
 
-
             proj_setts->beginGroup(grpn);
-            CommonsImgObject * imob = new CommonsImgObject(proj_setts->value("file_path").toString(), this);
 
-            imob->setCmsFilename(proj_setts->value("cms_filename").toString());
-            imob->setCmsAuthor(proj_setts->value("cms_author").toString());
-            imob->setFileDateTime(proj_setts->value("file_datetime").toDateTime());
-            imob->setCmsDateTime(proj_setts->value("cms_datetime").toString());
-            imob->setCmsDescription(proj_setts->value("cms_description").toString());
-            imob->setCmsLicense(proj_setts->value("cms_license").toString());
-            imob->setCmsLicense(proj_setts->value("cms_geo").toString());
 
-            imob->setUuid(QUuid(proj_setts->value("file_uuid").toString()));
-            if(imob->uuid().isNull())
-            {
-                imob->setUuid();
-                proj_setts->setValue("file_uuid", imob->uuid().toString());
-            }
-
-            const QVariantList& fg = proj_setts->value("file_geo").toList();
-            imob->setFileGeo(fg[0].toDouble(), fg[1].toDouble(), fg.size() > 2 ? fg[2].toDouble() : NAN, fg.size()>3 ?fg[3].toDouble() : NAN);
-
-            const QStringList &cats = proj_setts->value("cms_cats").toStringList();
-            foreach(const QString& cc, cats)
-                imob->cmsCats() << cc;
-
-            addCommonsImgObj(imob, false);
-
-            known_objs.insert(imob->uuid(), proj_setts->group());
+            known_objs.insert(QUuid(proj_setts->value("file_uuid").toString()), proj_setts->group());
+            uuids.insert(proj_setts->value("file_path").toString(), QUuid(proj_setts->value("file_uuid").toString()));
+            filelist << proj_setts->value("file_path").toString();
 
             proj_setts->endGroup();
         }
+
+        if(imldr)
+        {
+            imldr->terminate();
+            imldr->deleteLater();
+
+            imldr = 0;
+        }
+
+        imldr = new ImageLoader(filelist, uuids, this);
+        imldr->start();
     }
 
     void UploadProject::saveToFile(CommonsImgObject * ob, const QString & whe)
@@ -162,7 +163,8 @@ namespace imup
         if(whe.isEmpty() == false)
             proj_path = whe;
 
-        QSharedPointer<QSettings> proj_setts(new QSettings(proj_path, QSettings::IniFormat));
+        if(!proj_setts || proj_setts->fileName() != proj_path)
+            proj_setts = QSharedPointer<QSettings>(new QSettings(proj_path, QSettings::IniFormat));
 
         if(!checkDestFilePath(proj_path))
             throw UploadProjectError(tr("Error writing project to file '%1'").arg(proj_path));
@@ -179,7 +181,7 @@ namespace imup
                     imob->setUuid();
 
                 proj_setts->beginGroup(QString("file_%1").arg(++ctr));
-                saveObjToFile(proj_setts, imob);
+                saveObjToFile(imob);
                 proj_setts->endGroup();
                 proj_setts -> setValue("meta/file_count", QVariant::fromValue<quint64>(objs.size()));
             }
@@ -188,7 +190,7 @@ namespace imup
         {
             if(ob->uuid().isNull())
                 ob->setUuid();
-            saveObjToFile(proj_setts, ob);
+            saveObjToFile(ob);
         }
 
         proj_setts->sync();
@@ -202,7 +204,7 @@ namespace imup
         objs.clear();
     }
 
-    void UploadProject::saveObjToFile(QSharedPointer<QSettings> proj_setts, const CommonsImgObject *imob)
+    void UploadProject::saveObjToFile(const CommonsImgObject *imob)
     {
         bool endgrp = false;
         if((endgrp = proj_setts->group().isEmpty())) //auto append
@@ -235,6 +237,21 @@ namespace imup
         }
     }
 
+    void UploadProject::loadObjFromFile(const QUuid &uuid, CommonsImgObject *imob)
+    {
+        proj_setts->beginGroup(known_objs.value(uuid));
+
+        imob->setCmsFilename(proj_setts->value("cms_filename").toString());
+        imob->setCmsAuthor(proj_setts->value("cms_author").toString());
+        imob->setFileDateTime(proj_setts->value("file_datetime").toDateTime());
+        imob->setCmsDateTime(proj_setts->value("cms_datetime").toString());
+        imob->setCmsDescription(proj_setts->value("cms_description").toString());
+        imob->setCmsLicense(proj_setts->value("cms_license").toString());
+        imob->setCmsLicense(proj_setts->value("cms_geo").toString());
+
+        proj_setts->endGroup();
+    }
+
     bool UploadProject::checkDestFilePath(const QString & fp)
     {
         QFileInfo fi(fp);
@@ -253,4 +270,45 @@ namespace imup
 
         return false;
     }
+
+    bool UploadProject::event(QEvent *e)
+    {
+        if(e->type() == QEvent::User)
+        {
+            ImageLoader::ImageLoaderEvent *ilevt = dynamic_cast<ImageLoader::ImageLoaderEvent*>(e);
+            if(ilevt)
+            {
+                if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::ObjectCreated)
+                {
+                    loadObjFromFile(ilevt->cms_obj->uuid(), ilevt->cms_obj);
+                    addCommonsImgObj(ilevt->cms_obj, false);
+                    ilevt->cms_obj->setParent(this);
+
+                    ilevt->accept();
+
+                    if(parent())
+                    {
+                        UploadProjectEvent *evt = new UploadProjectEvent(UploadProjectEvent::FileLoaded, ilevt->cms_obj);
+                        QApplication::postEvent(parent(), evt);
+                    }
+
+                    return true;
+                }
+                else if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::Finished)
+                {
+                    emit projectLoaded();
+
+                    imldr->terminate();
+                    imldr->deleteLater();
+                    imldr = 0;
+
+                    ilevt->accept();
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 }

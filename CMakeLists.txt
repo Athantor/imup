@@ -21,6 +21,7 @@ SET(imup_SOURCES
     commonsimgobject.cpp 
     commonsimgwidget.cpp
     uploadproject.cpp
+    imageloader.cpp
  )
 
 SET(imup_HEADERS  imupwin.h 
@@ -28,6 +29,7 @@ SET(imup_HEADERS  imupwin.h
     commonsimgobject.h 
     commonsimgwidget.h
     uploadproject.h
+    imageloader.h
 )
 
 SET(imup_UIS  imupwin.ui 

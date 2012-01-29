@@ -23,6 +23,7 @@
 
 #include "uploadproject.h"
 #include "commonsimgwidget.h"
+#include "imageloader.h"
 
 namespace Ui {
     class imupWin;
@@ -39,11 +40,16 @@ namespace imup
             ~imupWin();
 
             static imupWin* instance();
+            const QSettings& getSetts() const;
 
         public slots:
             bool saveProject();
             bool loadProject();
             bool newProject();
+
+            void addFileObject(CommonsImgObject * cms_o);
+            void addFiles();
+            void addDirectory();
 
         protected:
             void changeEvent(QEvent *e);
@@ -51,7 +57,7 @@ namespace imup
 
             void makeToolbarButtons();
 
-            virtual bool	event ( QEvent * e );
+            bool eventFilter ( QObject * watched, QEvent * e );
 
         protected slots:
             void addImageWidgetsFromProject();
@@ -62,10 +68,14 @@ namespace imup
             Ui::imupWin *ui;
             UploadProject *proj;
             QHash<QUuid, CommonsImgWidget*> wgtlist;
+            ImageLoader * imloader;
+            QSettings global_setts;
+
             static imupWin* _intance;
 
             void connects();
             void lockIt(bool unl);
+            void validateSetts();
     };
 }
 

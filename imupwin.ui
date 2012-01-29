@@ -71,7 +71,21 @@
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
+   <widget class="QMenu" name="menuProject">
+    <property name="title">
+     <string>Project</string>
+    </property>
+    <widget class="QMenu" name="menuAdd">
+     <property name="title">
+      <string>&amp;Add</string>
+     </property>
+     <addaction name="actionFile"/>
+     <addaction name="actionDirectory"/>
+    </widget>
+    <addaction name="menuAdd"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menuProject"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -154,6 +168,16 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionFile">
+   <property name="text">
+    <string>&amp;Files…</string>
+   </property>
+  </action>
+  <action name="actionDirectory">
+   <property name="text">
+    <string>&amp;Directory…</string>
    </property>
   </action>
  </widget>
