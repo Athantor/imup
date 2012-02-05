@@ -20,6 +20,7 @@
 
 #include <QtGui/QWidget>
 #include <QEvent>
+#include <QCalendarWidget>
 
 #include "commonsimgobject.h"
 
@@ -82,14 +83,25 @@ namespace imup
 
             virtual void requestDeletion();
 
+            virtual void showCal();
+            virtual void setDateFromCal(const QDate &);
+            virtual void setDateFromMetadata();
+
         private slots:
             void on_FileDescTxtEdit_textChanged();
 
 
         private:
             Ui::CommonsImgWidget *ui;
+            QAction *act_exif_date;
+            QAction *act_cal_date;
+            QAction *act_exif_geo;
+            QAction *act_show_geo_on_map;
+            QScopedPointer<QCalendarWidget> calwgt;
 
+            void makeActions();
             void commonSetup();
+
     };
 
 }

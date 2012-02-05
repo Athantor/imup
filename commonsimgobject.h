@@ -62,15 +62,17 @@ namespace imup
 
         public slots:
             virtual void setCmsGeo(const QString& cgeo);
-            virtual void setFileGeo(double, double, double = NAN, double = NAN);
             virtual void setCmsDateTime(const QString&);
-            virtual void setFileDateTime(const QDateTime&);
             virtual void setCmsAuthor(const QString&);
             virtual void setCmsFileSource(const QString& fsrc);
             virtual void setCmsLicense(const QString&);
             virtual void setCmsDescription(const QString&);
             virtual void setCmsFilename(const QString&);
             virtual void setUuid(const QUuid& uuid = QUuid::createUuid());
+
+        protected slots:
+            virtual void setFileGeo(double, double, double = NAN, double = NAN);
+            virtual void setFileDateTime(const QDateTime&);
 
         protected:
           ImageFile* img_file;

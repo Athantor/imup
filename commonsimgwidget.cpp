@@ -16,6 +16,8 @@
 */
 
 #include <QMessageBox>
+#include <QMenu>
+
 
 #include "imupwin.h"
 #include "commonsimgwidget.h"
@@ -27,6 +29,7 @@ namespace imup
     CommonsImgWidget::CommonsImgWidget(CommonsImgObject *imob, QWidget *parent)
         : QWidget(parent), img_obj(imob), ui(new Ui::CommonsImgWidget)
     {
+        makeActions();
         commonSetup();
     }
 
@@ -36,12 +39,37 @@ namespace imup
         commonSetup();
     }
 
+
+    void CommonsImgWidget::makeActions()
+    {
+        act_exif_date = new QAction(QIcon(), tr("Get date from &metadata"), this);
+        act_cal_date = new QAction(QIcon(), tr("Get date from &calendar"), this);
+        act_exif_geo = new QAction(QIcon(), tr("&Get geo from metadata"), this);
+        act_show_geo_on_map = new QAction(QIcon(), tr("Show geo on &map"), this);
+    }
+
     void CommonsImgWidget::commonSetup()
     {
         ui->setupUi(this);
         setupFields();
 
+        calwgt.reset(new QCalendarWidget(0));
+        calwgt->setMaximumDate(QDate::currentDate());
+
+        connect(calwgt.data(), SIGNAL(activated(QDate)), this, SLOT(setDateFromCal(QDate)));
+
         connect(ui->closeBtn, SIGNAL(clicked()), this, SLOT(requestDeletion()));
+
+        ui->DtBtn->setMenu(new QMenu());
+        ui->DtBtn->menu()->addAction(act_exif_date);
+        ui->DtBtn->menu()->addAction(act_cal_date);
+
+        connect(act_cal_date, SIGNAL(triggered()), this, SLOT(showCal()));
+        connect(act_exif_date, SIGNAL(triggered()), this, SLOT(setDateFromMetadata()));
+
+        ui->GeoBtn->setMenu(new QMenu(tr("G")));
+        ui->GeoBtn->menu()->addAction(act_show_geo_on_map);
+        ui->GeoBtn->menu()->addAction(act_exif_geo);
     }
 
     CommonsImgWidget::~CommonsImgWidget()
@@ -127,6 +155,32 @@ namespace imup
 
         CommonsImgWidgetEvent *evt =new CommonsImgWidgetEvent(CommonsImgWidgetEvent::DeleteRequested, this);
         QApplication::postEvent(imupWin::instance(), evt);
+    }
+
+    void CommonsImgWidget::showCal()
+    {
+        calwgt->setWindowTitle(tr("Select date…"));
+        calwgt->setWindowModality(Qt::WindowModal);
+        calwgt->move(mapToGlobal(ui->FileDtEdit->geometry().center()));
+
+        QString hlp = ui->FileDtEdit->text().trimmed();
+        QDate dtxt;
+        if((dtxt = QDate::fromString(hlp, Qt::TextDate)).isValid() || (dtxt = QDate::fromString(hlp, Qt::SystemLocaleDate)).isValid() || (dtxt = QDate::fromString(hlp, Qt::ISODate)).isValid())
+            calwgt->setSelectedDate(dtxt);
+
+        calwgt->showSelectedDate();
+        calwgt->show();
+    }
+
+    void CommonsImgWidget::setDateFromCal(const QDate &d)
+    {
+        calwgt->hide();
+        ui->FileDtEdit->setText(d.toString("yyyy-MM-dd"));
+    }
+
+    void CommonsImgWidget::setDateFromMetadata()
+    {
+        ui->FileDtEdit->setText(img_obj->fileDateTime().toString("yyyy-MM-dd hh:mm:ss"));
     }
 
     void CommonsImgWidget::on_FileDescTxtEdit_textChanged()

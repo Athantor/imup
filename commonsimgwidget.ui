@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>384</width>
-    <height>305</height>
+    <width>378</width>
+    <height>309</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -184,23 +184,29 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="2">
+         <widget class="QLineEdit" name="FileDtEdit"/>
+        </item>
+        <item row="5" column="3">
+         <widget class="QToolButton" name="DtBtn">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="popupMode">
+           <enum>QToolButton::MenuButtonPopup</enum>
+          </property>
+         </widget>
+        </item>
         <item row="6" column="3">
-         <widget class="QPushButton" name="GeoBtn">
+         <widget class="QToolButton" name="GeoBtn">
           <property name="statusTip">
            <string>View in external map…</string>
           </property>
           <property name="text">
            <string/>
           </property>
-         </widget>
-        </item>
-        <item row="5" column="2">
-         <widget class="QLineEdit" name="FileDtEdit"/>
-        </item>
-        <item row="5" column="3">
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="text">
-           <string/>
+          <property name="popupMode">
+           <enum>QToolButton::MenuButtonPopup</enum>
           </property>
          </widget>
         </item>
