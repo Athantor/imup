@@ -82,6 +82,10 @@ namespace imup
 
             virtual void requestDeletion();
 
+        private slots:
+            void on_FileDescTxtEdit_textChanged();
+
+
         private:
             Ui::CommonsImgWidget *ui;
 

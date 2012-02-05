@@ -56,7 +56,7 @@ namespace imup
 
         proj->setProjectFilePath(unsaved_proj_path);
         QFileInfo qfi(unsaved_proj_path);
-        /* [meta]*/
+        //                         [meta]
         if(qfi.exists() && qfi.size() > 6  &&
                 QMessageBox::question(this, tr("Rescue unsaved?"), tr("There seems to be an unsaved upload project "
                                                                       "from prevoius session. Load it?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)

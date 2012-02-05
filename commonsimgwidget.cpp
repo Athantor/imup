@@ -89,9 +89,17 @@ namespace imup
         ui->FileAuthorEdit->setText(img_obj->cmsAuthor());
         ui->FileDtEdit->setText(img_obj->cmsDateTime());
 
+        ui->FileDescTxtEdit->setPlainText(img_obj->cmsDescription());
+
         //auto geo = img_obj->fileGeo();
         // QString("{{Location dec|%1|%2}}").arg(std::get<0>(geo) , 0, 'g', 8).arg(std::get<0>(geo), 0, 'g', 8)
         ui->GeoEdit->setText( img_obj-> cmsGeo() );
+
+        connect(ui->UploadFilenameEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsFilename(QString)));
+        connect(ui->FileAuthorEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsAuthor(QString)));
+        connect(ui->FileSourceEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsFileSource(QString)));
+        connect(ui->FileDtEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsDateTime(QString)));
+        connect(ui->GeoEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsGeo(QString)));
     }
 
     QString CommonsImgWidget::makeThumbTooltipText()
@@ -120,4 +128,12 @@ namespace imup
         CommonsImgWidgetEvent *evt =new CommonsImgWidgetEvent(CommonsImgWidgetEvent::DeleteRequested, this);
         QApplication::postEvent(imupWin::instance(), evt);
     }
+
+    void CommonsImgWidget::on_FileDescTxtEdit_textChanged()
+    {
+        img_obj->setCmsDescription(ui->FileDescTxtEdit->toPlainText());
+    }
 }
+
+
+

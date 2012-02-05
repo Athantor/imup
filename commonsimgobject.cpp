@@ -83,9 +83,19 @@ namespace imup
         return cms_author;
     }
 
+    const QString &CommonsImgObject::cmsFileSource() const
+    {
+        return cms_filesrc;
+    }
+
     void CommonsImgObject::setCmsAuthor(const QString &cfa)
     {
         cms_author = cfa;
+    }
+
+    void CommonsImgObject::setCmsFileSource(const QString & fsrc)
+    {
+        cms_filesrc = fsrc;
     }
 
     const QString &CommonsImgObject::cmsDateTime() const

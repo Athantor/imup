@@ -46,6 +46,7 @@ namespace imup
             virtual const QString& cmsDescription() const;
             virtual const QString& cmsLicense() const;
             virtual const QString& cmsAuthor() const;
+            virtual const QString& cmsFileSource() const;
             virtual const QString& cmsDateTime() const;
             virtual const QDateTime& fileDateTime() const;
             virtual const QString& cmsGeo() const;
@@ -65,6 +66,7 @@ namespace imup
             virtual void setCmsDateTime(const QString&);
             virtual void setFileDateTime(const QDateTime&);
             virtual void setCmsAuthor(const QString&);
+            virtual void setCmsFileSource(const QString& fsrc);
             virtual void setCmsLicense(const QString&);
             virtual void setCmsDescription(const QString&);
             virtual void setCmsFilename(const QString&);
@@ -76,6 +78,7 @@ namespace imup
           QString cms_desc;
           QString cms_license;
           QString cms_author;
+          QString cms_filesrc;
           QString cms_dt;
           QDateTime cms_file_dt;
           QString cms_geo;

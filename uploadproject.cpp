@@ -67,14 +67,13 @@ namespace imup
 
     void UploadProject::addCommonsImgObj(CommonsImgObject *obj, bool write)
     {
-//        if(known_objs.contains(obj->uuid()))
-//            return;
-
         objs.append(obj);
-        is_modifed = true;
 
         if(write)
+        {
+            is_modifed = true;
             saveToFile(obj);
+        }
     }
 
     CommonsImgObject *UploadProject::addCommonsImgObj(const QString &path)
@@ -270,7 +269,7 @@ namespace imup
         imob->setCmsDateTime(proj_setts->value("cms_datetime").toString());
         imob->setCmsDescription(proj_setts->value("cms_description").toString());
         imob->setCmsLicense(proj_setts->value("cms_license").toString());
-        imob->setCmsLicense(proj_setts->value("cms_geo").toString());
+        imob->setCmsGeo(proj_setts->value("cms_geo").toString());
 
         proj_setts->endGroup();
     }

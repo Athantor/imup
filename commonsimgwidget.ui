@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>386</width>
+    <width>384</width>
     <height>305</height>
    </rect>
   </property>
@@ -114,7 +114,7 @@
         <item row="2" column="1">
          <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>Description</string>
+           <string>Description:</string>
           </property>
           <property name="buddy">
            <cstring>FileDescTxtEdit</cstring>
@@ -122,7 +122,13 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QTextEdit" name="FileDescTxtEdit"/>
+         <widget class="QTextEdit" name="FileDescTxtEdit">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
         </item>
         <item row="7" column="0">
          <widget class="QPushButton" name="pushButton_2">
