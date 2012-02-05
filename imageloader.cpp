@@ -24,7 +24,8 @@
 namespace imup {
 
     ImageLoader::ImageLoader(const QString & filedir, bool recursive, QObject *parent) :
-        QThread(parent), path_to_load(filedir), uuidl(QHash<QString, QUuid>()), recurse(recursive), objs(0)
+        QThread(parent), path_to_load(filedir), uuidl(QHash<QString, QUuid>()), recurse(recursive), objs(0),
+        is_quitted(false)
     {
     }
 
@@ -57,15 +58,37 @@ namespace imup {
         return ret;
     }
 
+    quint64 ImageLoader::loadedFilesCount() const
+    {
+        return loaded_ctr;
+    }
+
+    void ImageLoader::quit()
+    {
+        is_quitted = true;
+    }
+
     void ImageLoader::run()
     {
+        is_quitted = false;
+        loaded_ctr = 0;
         if(path_to_load.isEmpty() == false)
         {
             file_paths.clear();
             makeFilePaths(path_to_load);
         }
 
-        makeCmsObjs();
+        if(parent())
+        {
+            QVariantMap msg;
+            msg["files"] = file_paths.size();
+            msg["root_path"] = path_to_load;
+
+            QApplication::postEvent(parent(), new ImageLoaderEvent(ImageLoaderEvent::Starting, 0, msg));
+        }
+
+        if(!is_quitted)
+            makeCmsObjs();
 
         if(parent())
         {
@@ -82,7 +105,7 @@ namespace imup {
         QFileInfo qfi(p);
         QSettings ss;
 
-        if(qfi.exists() == false || qfi.isReadable() == false)
+        if(qfi.exists() == false || qfi.isReadable() == false ||is_quitted)
             return false;
 
         if(qfi.isDir() && (p == path_to_load || recurse))
@@ -95,7 +118,11 @@ namespace imup {
 
             files = the_dir.entryList(QDir::AllDirs|QDir::Files|QDir::NoDotAndDotDot|QDir::Readable, QDir::Name|QDir::IgnoreCase|QDir::LocaleAware);
             foreach(const QString &path, files)
+            {
                 makeFilePaths(the_dir.absoluteFilePath(path));
+                if(is_quitted)
+                    break;
+            }
 
             return true;
         }
@@ -108,28 +135,31 @@ namespace imup {
         return false;
     }
 
-    quint64 ImageLoader::makeCmsObjs()
+    void ImageLoader::makeCmsObjs()
     {
-        quint64 ctr = 0;
         foreach(const QString &file, file_paths)
         {
             CommonsImgObject *the_obj = new CommonsImgObject(file);
             the_obj->setUuid(uuidl.value(file, QUuid::createUuid()));;
 
-            ctr++;
+            loaded_ctr++;
 
             if(parent())
             {
+                QVariantMap vm;
+
                 the_obj->moveToThread(parent()->thread());
-                ImageLoaderEvent *evt = new ImageLoaderEvent(ImageLoaderEvent::ObjectCreated, the_obj);
-                QApplication::postEvent(parent(), evt);
+
+                vm["file"] = file;
+                QApplication::postEvent(parent(), new ImageLoaderEvent(ImageLoaderEvent::ObjectCreated, the_obj, vm));
             }
             else
             {
                 objs->push_back(the_obj);
             }
-        }
 
-        return ctr;
+            if(is_quitted)
+                break;
+        }
     }
 }

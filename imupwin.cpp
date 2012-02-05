@@ -39,7 +39,7 @@ namespace imup
     imupWin* imupWin::_intance = 0;
 
     imupWin::imupWin(QWidget *parent) :
-        QMainWindow(parent),  ui(new Ui::imupWin), proj(new UploadProject(this)), imloader(0)
+        QMainWindow(parent),  ui(new Ui::imupWin), proj(new UploadProject(this)), imloader(0), pdlg(0)
     {
         imupWin::_intance = this;
 
@@ -87,13 +87,61 @@ namespace imup
 
     bool imupWin::saveProject()
     {
-        QString sp = QFileDialog::getSaveFileName(this, tr("Save project…"), QDir::homePath(), tr("Project files (*.ini) (*.ini)"));
+        return saveProjectAs(project_path);
+    }
+
+    bool imupWin::saveProjectAs(const QString &ppath)
+    {
+        QString sp = ppath;
+
+        if(sp.isEmpty())
+            sp = QFileDialog::getSaveFileName(this, tr("Save project…"), QDir::homePath(), tr("Project files (*.ini) (*.ini)"));
+
         if(sp.isEmpty() == false)
         {
-            proj->saveToFile(0, sp);
-            QFile::remove(unsaved_proj_path);
+            bool ret = false;
+            proj->saveToFile(0, unsaved_proj_path);
 
-            return true;
+            QFileInfo fi(unsaved_proj_path);
+
+            if(fi.exists() == false)
+            {
+                QMessageBox::critical(this, tr("Error"), tr("There was error while saving the project!<br>"
+                                                            "Temporrary project file doesn't exist!"));
+                return false;
+            }
+            else if(fi.isReadable() == false)
+            {
+                QMessageBox::critical(this, tr("Error"), tr("There was error while saving the project!<br>"
+                                                            "Temporrary project file isn't readable!"));
+                return false;
+            } else if(fi.size() < 6 && QMessageBox::warning(this, tr("Problem"), tr("Temporary project file is suspiciously small (%1 B) and is probably br0ken!<br>"
+                                                                                    "Continue saving? (You may loose data)!").arg(fi.size()),
+                                                            QMessageBox::Yes|QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+            {
+                return false;
+            }
+
+            setCursor(Qt::BusyCursor);
+
+            QFile::remove(sp);
+            if((ret = QFile::copy(unsaved_proj_path, sp)))
+            {
+                project_path = sp;
+
+                setWindowTitle(tr("%1 — „%2”").arg(QApplication::applicationName()).arg(QFileInfo(project_path).fileName()));
+
+                statusBar()->showMessage(tr("Saved %1 files to „%2”.").arg(proj->objects().size()).arg(project_path), 3000);
+            }
+            else
+            {
+                QMessageBox::critical(this, tr("Error"), tr("There was error while saving the project!<br>"
+                                                            "Temporary project file, from which you may be able to recover data:<br><br>"
+                                                            "<tt style='font-weight:bold; font-size: large'>%1</tt>").arg(unsaved_proj_path));
+            }
+
+            unsetCursor();
+            return ret;
         }
         else
         {
@@ -103,7 +151,7 @@ namespace imup
 
     bool imupWin::loadProject()
     {
-        if(proj->objects().size() > 0 && proj->projectFilePath() == unsaved_proj_path)
+        if(proj->objects().size() > 0 && proj->isModified())
         {
             if(QMessageBox::question(this, tr("Save unsaved?"), tr("There are unsaved changes. Do you wish to save them before opening other project?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
             {
@@ -116,15 +164,34 @@ namespace imup
         if(qs.isEmpty())
             return false;
 
-        wgtlist.clear();
-        proj->loadFromFile(true, qs);
+        if(qs == project_path && QMessageBox::question(this, tr("Load again?"),
+                                                       tr("Project „<strong>%1</strong>” already opened! Load it again?")
+                                                       .arg(QFileInfo(project_path).fileName()), QMessageBox::Yes|QMessageBox::No) == QMessageBox::No )
+            return false;
 
-        return true;
+        wgtlist.clear();
+
+        QFile::remove(unsaved_proj_path);
+        if(QFile::copy(qs, unsaved_proj_path))
+        {
+            setCursor(Qt::BusyCursor);
+            proj->loadFromFile(false, unsaved_proj_path);
+            project_path = qs;
+
+            return true;
+        }
+        else
+        {
+            QMessageBox::critical(this, tr("Error"), tr("Where was an error while loading project!"));
+            return false;
+        }
+
+        return false;
     }
 
     bool imupWin::newProject()
     {
-        if(proj->objects().size() > 0 && proj->projectFilePath() == unsaved_proj_path)
+        if(proj->objects().size() > 0 && proj->isModified())
         {
             if(QMessageBox::question(this, tr("Save unsaved?"), tr("There are unsaved changes. Do you wish to save them before clearing project?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
             {
@@ -133,6 +200,7 @@ namespace imup
             }
         }
 
+        setCursor(Qt::BusyCursor);
         foreach(QWidget *qw, wgtlist.values())
         {
             qw->hide();
@@ -144,7 +212,11 @@ namespace imup
 
         proj = new UploadProject(this);
         proj->setProjectFilePath(unsaved_proj_path);
+        project_path.clear();
 
+        setWindowTitle(tr("%1").arg(QApplication::applicationName()));
+
+        unsetCursor();
         return true;
     }
 
@@ -214,12 +286,12 @@ namespace imup
 
     void imupWin::closeEvent(QCloseEvent *event)
     {
-        if(proj->objects().size() > 0 && proj->projectFilePath() == unsaved_proj_path)
+        if(proj->objects().size() > 0 && proj->isModified())
         {
             if(QMessageBox::question(this, tr("Save project"), tr("Do you wish to save this project under some fancy name, "
                                                                   "so you'll be able to return to it later?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
             {
-                if(saveProject() == false)
+                if(saveProjectAs() == false)
                     event->ignore();
             }
             else
@@ -235,6 +307,11 @@ namespace imup
                     QFile::remove(unsaved_proj_path);
                 }
             }
+        }
+        else
+        {
+            proj->deleteLater();
+            QFile::remove(unsaved_proj_path);
         }
 
         event->accept();
@@ -273,21 +350,100 @@ namespace imup
             }
             else if((ilevt = dynamic_cast<ImageLoader::ImageLoaderEvent*>(e)))
             {
-                if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::ObjectCreated)
+                if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::Starting)
+                {
+                    setCursor(Qt::BusyCursor);
+
+                    const QVariantMap& vm = ilevt->the_msg;
+
+                    pdlg = new QProgressDialog(
+                               tr("Loading dir „<strong>%1</strong>”…").arg(vm.value("root_path", QString("?")).toString()),
+                               tr("&Stop!"),
+                               0,
+                               vm.value("files", 0).toInt(),
+                               this);
+
+                    pdlg->setAutoClose(false);
+                    pdlg->setWindowModality(Qt::WindowModal);
+                    pdlg->setWindowTitle(tr("Loading…"));
+
+                    pdlg->show();
+                    ui->menuProject->setEnabled(false);
+
+                    connect(pdlg, SIGNAL(canceled()), this, SLOT(cancelLoad()));
+                    e->accept();
+                }
+                else if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::ObjectCreated)
                 {
                     addFileObject(ilevt->cms_obj);
+
+                    pdlg->setValue(pdlg->value()+1);
+                    statusBar()->showMessage(ilevt->the_msg.value("file", "").toString(), 1000);
+
                     e->accept();
                     return true;
+                }
+                else if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::Finished)
+                {
+                    disconnect(pdlg);
+
+                    pdlg->setValue(pdlg->maximum());
+                    pdlg->hide();
+                    pdlg->deleteLater();
+                    pdlg = 0;
+
+                    ui->menuProject->setEnabled(true);
+                    unsetCursor();
+                    e->accept();
                 }
             }
             else if((upevt = dynamic_cast<UploadProject::UploadProjectEvent*>(e)))
             {
-                if(upevt->evt_type == UploadProject::UploadProjectEvent::FileLoaded)
+                if(upevt->evt_type == UploadProject::UploadProjectEvent::LoadingStarted)
+                {
+                    setCursor(Qt::BusyCursor);
+
+                    pdlg = new QProgressDialog(
+                               tr("Loading project „<strong>%1</strong>”…").arg(project_path),
+                               tr("&Stop!"),
+                               0,
+                               upevt->the_msg.value("files", 0).toInt(),
+                               this);
+
+                    pdlg->setAutoClose(false);
+                    pdlg->setWindowModality(Qt::WindowModal);
+                    pdlg->setWindowTitle(tr("Loading…"));
+
+                    pdlg->show();
+                    ui->menuProject->setEnabled(false);
+
+                    connect(pdlg, SIGNAL(canceled()), proj, SLOT(cancelLoad()));
+                }
+                else if(upevt->evt_type == UploadProject::UploadProjectEvent::FileLoaded)
                 {
                     addFileObject(upevt->cms_obj);
 
+                    pdlg->setValue(pdlg->value()+1);
+                    statusBar()->showMessage(upevt->the_msg.value("file", "").toString(), 1000);
+
                     upevt->accept();
                     return true;
+                }
+                else if(upevt->evt_type ==UploadProject::UploadProjectEvent::LoadingFinished)
+                {
+                    disconnect(pdlg);
+
+                    pdlg->setValue(pdlg->maximum());
+                    pdlg->hide();
+                    pdlg->deleteLater();
+                    pdlg = 0;
+
+                    statusBar()->showMessage(tr("Loaded %1 files.").arg(upevt->the_msg.value("loaded_files", 0).toULongLong()), 3000);
+                    ui->menuProject->setEnabled(true);
+
+                    unsetCursor();
+                    setWindowTitle(tr("%1 — „%2”").arg(QApplication::applicationName()).arg(QFileInfo(project_path).fileName()));
+                    e->accept();
                 }
             }
         }
@@ -319,12 +475,20 @@ namespace imup
 
     }
 
+    void imupWin::cancelLoad()
+    {
+        if(imloader && imloader->isRunning())
+        {
+            imloader->quit();
+        }
+    }
+
     void imupWin::connects()
     {
-
         connect(proj, SIGNAL(projectLoaded()), this, SLOT(addImageWidgetsFromProject()));
 
-        connect(ui->actionSave_as, SIGNAL(triggered()), this, SLOT(saveProject()));
+        connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveProject()));
+        connect(ui->actionSave_as, SIGNAL(triggered()), this, SLOT(saveProjectAs()));
         connect(ui->action_Open_project, SIGNAL(triggered()), this, SLOT(loadProject()));
         connect(ui->actionNew_project, SIGNAL(triggered()), this, SLOT(newProject()));
 

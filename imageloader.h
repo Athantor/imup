@@ -23,6 +23,7 @@
 #include <QMap>
 #include <QUuid>
 #include <QEvent>
+#include <QMutex>
 
 #include "commonsimgobject.h"
 
@@ -36,6 +37,7 @@ namespace imup {
                 public:
                     typedef enum
                     {
+                        Starting,
                         ObjectCreated,
                         Message,
                         Finished,
@@ -43,7 +45,7 @@ namespace imup {
 
                     } EventType;
 
-                    ImageLoaderEvent(EventType et, CommonsImgObject *obj, const QString &msg = QString()) :
+                    ImageLoaderEvent(EventType et, CommonsImgObject *obj, const QVariantMap &msg = QVariantMap()) :
                         QEvent(QEvent::User), the_msg(msg), cms_obj(obj), evt_type(et)
                     {
 
@@ -58,7 +60,7 @@ namespace imup {
                         }
                     }
 
-                    const QString &the_msg;
+                    const QVariantMap the_msg;
                     CommonsImgObject *cms_obj;
                     const EventType evt_type;
             };
@@ -69,7 +71,10 @@ namespace imup {
 
             QList<CommonsImgObject *>* objects(bool reparent);
 
+            quint64 loadedFilesCount() const;
+
         public slots:
+            virtual void quit();
 
         protected:
             virtual void run();
@@ -82,9 +87,11 @@ namespace imup {
             QHash<QString, QUuid> uuidl;
             bool recurse;
             QList<CommonsImgObject *>* objs;
+            bool is_quitted;
+            quint64 loaded_ctr;
 
             bool makeFilePaths(const QString & p = QString());
-            quint64 makeCmsObjs();
+            void makeCmsObjs();
     };
 }
 

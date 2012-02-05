@@ -20,14 +20,16 @@
 #include <QTextCodec>
 #include <QStringList>
 #include <QApplication>
+#include <QMessageBox>
 
 #include "uploadproject.h"
 
 namespace imup
 {
     UploadProject::UploadProject(QObject *parent) :
-        QObject(parent), imldr(0), proj_setts(0)
+        QObject(parent), imldr(0), proj_setts(0), is_modifed(true), pre_load(false)
     {
+        installEventFilter(this);
     }
 
     UploadProject::~UploadProject()
@@ -58,12 +60,18 @@ namespace imup
         return proj_path;
     }
 
+    bool UploadProject::isModified() const
+    {
+        return is_modifed;
+    }
+
     void UploadProject::addCommonsImgObj(CommonsImgObject *obj, bool write)
     {
-        if(known_objs.contains(obj->uuid()))
-            return;
+//        if(known_objs.contains(obj->uuid()))
+//            return;
 
         objs.append(obj);
+        is_modifed = true;
 
         if(write)
             saveToFile(obj);
@@ -90,6 +98,7 @@ namespace imup
             obj->deleteLater();
 
             objs.removeAt(idx);
+            is_modifed = true;
         }
 
         proj_setts.clear();
@@ -124,7 +133,10 @@ namespace imup
         }
 
         if(clear)
+        {
             clearObjs();
+            is_modifed = true;
+        }
 
         const quint64 files = proj_setts->value("meta/file_count", 0).toULongLong();
         QStringList filelist;
@@ -154,6 +166,7 @@ namespace imup
             imldr = 0;
         }
 
+        pre_load = is_modifed;
         imldr = new ImageLoader(filelist, uuids, this);
         imldr->start();
     }
@@ -193,7 +206,16 @@ namespace imup
             saveObjToFile(ob);
         }
 
+        is_modifed = false;
         proj_setts->sync();
+    }
+
+    void UploadProject::cancelLoad()
+    {
+        if(imldr && imldr->isRunning())
+        {
+            imldr->quit();
+        }
     }
 
     void UploadProject::clearObjs()
@@ -201,6 +223,7 @@ namespace imup
         foreach(CommonsImgObject *o, objs)
             o->deleteLater();
 
+        is_modifed = false;
         objs.clear();
     }
 
@@ -271,36 +294,63 @@ namespace imup
         return false;
     }
 
-    bool UploadProject::event(QEvent *e)
+    bool UploadProject::eventFilter(QObject *, QEvent *e)
     {
         if(e->type() == QEvent::User)
         {
             ImageLoader::ImageLoaderEvent *ilevt = dynamic_cast<ImageLoader::ImageLoaderEvent*>(e);
             if(ilevt)
             {
-                if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::ObjectCreated)
+                if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::Starting)
+                {
+                    if(parent())
+                    {
+                        UploadProjectEvent *evt = new UploadProjectEvent(UploadProjectEvent::LoadingStarted, 0);
+                        evt->the_msg["files"] = ilevt->the_msg.value("files");
+
+                        QApplication::postEvent(parent(), evt);
+                    }
+
+                    ilevt->accept();
+                    return true;
+                }
+                else if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::ObjectCreated)
                 {
                     loadObjFromFile(ilevt->cms_obj->uuid(), ilevt->cms_obj);
                     addCommonsImgObj(ilevt->cms_obj, false);
                     ilevt->cms_obj->setParent(this);
 
-                    ilevt->accept();
-
                     if(parent())
                     {
                         UploadProjectEvent *evt = new UploadProjectEvent(UploadProjectEvent::FileLoaded, ilevt->cms_obj);
+                        evt->the_msg["file"] = ilevt->cms_obj->imageFile()->getFileInfo().canonicalFilePath();
+
                         QApplication::postEvent(parent(), evt);
                     }
+
+                    ilevt->accept();
 
                     return true;
                 }
                 else if(ilevt->evt_type == ImageLoader::ImageLoaderEvent::Finished)
                 {
-                    emit projectLoaded();
+                    quint64 lc = imldr->loadedFilesCount();
 
                     imldr->terminate();
                     imldr->deleteLater();
                     imldr = 0;
+
+                    if(parent())
+                    {
+                        UploadProjectEvent *evt = new UploadProjectEvent(UploadProjectEvent::LoadingFinished, 0);
+                        evt->the_msg["loaded_files"] = lc;
+
+                        QApplication::postEvent(parent(), evt);
+                    }
+
+                    is_modifed = pre_load;
+
+                    emit projectLoaded();
 
                     ilevt->accept();
                     return true;

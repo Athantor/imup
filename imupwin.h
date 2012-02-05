@@ -20,6 +20,7 @@
 
 #include <QtGui/QMainWindow>
 #include <QCloseEvent>
+#include <QProgressDialog>
 
 #include "uploadproject.h"
 #include "commonsimgwidget.h"
@@ -44,6 +45,7 @@ namespace imup
 
         public slots:
             bool saveProject();
+            bool saveProjectAs(const QString &ppath = QString());
             bool loadProject();
             bool newProject();
 
@@ -62,14 +64,17 @@ namespace imup
         protected slots:
             void addImageWidgetsFromProject();
             void removeObject(CommonsImgWidget *imwgt);
+            void cancelLoad();
 
         private:
             static const QString unsaved_proj_path;
             Ui::imupWin *ui;
             UploadProject *proj;
+            QString project_path;
             QHash<QUuid, CommonsImgWidget*> wgtlist;
             ImageLoader * imloader;
             QSettings global_setts;
+            QProgressDialog *pdlg;
 
             static imupWin* _intance;
 

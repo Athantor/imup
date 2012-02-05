@@ -47,7 +47,9 @@ namespace imup {
                 public:
                     typedef enum
                     {
+                        LoadingStarted,
                         FileLoaded,
+                        LoadingFinished,
                         Invalid
                     } EvtType;
 
@@ -57,6 +59,7 @@ namespace imup {
 
                     const EvtType evt_type;
                     CommonsImgObject *cms_obj;
+                    QVariantHash the_msg;
             };
 
             explicit UploadProject(QObject *parent = 0);
@@ -68,6 +71,8 @@ namespace imup {
             void setProjectFilePath(const QString &ppath);
             const QString& projectFilePath() const;
 
+            bool isModified() const;
+
         public slots:
             void addCommonsImgObj(CommonsImgObject * obj, bool write = true);
             CommonsImgObject * addCommonsImgObj(const QString &path);
@@ -77,6 +82,8 @@ namespace imup {
             void loadFromFile(bool clear = true, const QString & whe = QString());
             void saveToFile(CommonsImgObject* =0, const QString & whe = QString());
 
+            void cancelLoad();
+
         protected:
             QString proj_path;
             QList<CommonsImgObject *> objs;
@@ -85,6 +92,7 @@ namespace imup {
             ImageLoader *imldr;
             bool autosave;
             QSharedPointer<QSettings> proj_setts;
+            bool is_modifed, pre_load;
 
             void clearObjs();
             void saveObjToFile(const CommonsImgObject *imob);
@@ -92,11 +100,11 @@ namespace imup {
 
             static bool checkDestFilePath(const QString&);
 
-            virtual bool event(QEvent *);
+            virtual bool eventFilter(QObject *, QEvent *);
 
 
         private:
-            Q_DISABLE_COPY(UploadProject);
+            Q_DISABLE_COPY(UploadProject)
 
 
         signals:
