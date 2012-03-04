@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>376</width>
-    <height>309</height>
+    <width>452</width>
+    <height>337</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -55,29 +55,26 @@
       </item>
       <item>
        <layout class="QGridLayout" name="gridLay">
-        <item row="1" column="0" rowspan="4">
-         <widget class="QLabel" name="ThumbLbl">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Desired filename:</string>
-          </property>
-          <property name="buddy">
-           <cstring>UploadFilenameEdit</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLineEdit" name="UploadFilenameEdit">
+        <item row="2" column="2">
+         <widget class="QTextEdit" name="FileDescTxtEdit">
           <property name="font">
            <font>
             <family>Monospace</family>
            </font>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QPushButton" name="previewBtn">
+          <property name="text">
+           <string>Preview…</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QPushButton" name="infoBtn">
+          <property name="text">
+           <string>Info…</string>
           </property>
          </widget>
         </item>
@@ -110,6 +107,41 @@
           </property>
          </widget>
         </item>
+        <item row="6" column="2">
+         <widget class="QLineEdit" name="GeoEdit">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="StatusLbl">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="2">
+         <widget class="QLineEdit" name="FileDtEdit">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="3">
+         <widget class="QToolButton" name="DtBtn">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="popupMode">
+           <enum>QToolButton::MenuButtonPopup</enum>
+          </property>
+         </widget>
+        </item>
         <item row="4" column="2">
          <widget class="QLineEdit" name="FileAuthorEdit">
           <property name="font">
@@ -139,26 +171,10 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="2">
-         <widget class="QTextEdit" name="FileDescTxtEdit">
-          <property name="font">
-           <font>
-            <family>Monospace</family>
-           </font>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QPushButton" name="pushButton_2">
+        <item row="1" column="0" rowspan="4">
+         <widget class="QLabel" name="ThumbLbl">
           <property name="text">
-           <string>Preview…</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QPushButton" name="pushButton">
-          <property name="text">
-           <string>Info…</string>
+           <string/>
           </property>
          </widget>
         </item>
@@ -222,15 +238,6 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="2">
-         <widget class="QLineEdit" name="GeoEdit">
-          <property name="font">
-           <font>
-            <family>Monospace</family>
-           </font>
-          </property>
-         </widget>
-        </item>
         <item row="6" column="1">
          <widget class="QLabel" name="label_6">
           <property name="text">
@@ -241,29 +248,22 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="StatusLbl">
+        <item row="1" column="1">
+         <widget class="QLabel" name="label_2">
           <property name="text">
-           <string/>
+           <string>Desired filename:</string>
+          </property>
+          <property name="buddy">
+           <cstring>UploadFilenameEdit</cstring>
           </property>
          </widget>
         </item>
-        <item row="5" column="2">
-         <widget class="QLineEdit" name="FileDtEdit">
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="UploadFilenameEdit">
           <property name="font">
            <font>
             <family>Monospace</family>
            </font>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="3">
-         <widget class="QToolButton" name="DtBtn">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="popupMode">
-           <enum>QToolButton::MenuButtonPopup</enum>
           </property>
          </widget>
         </item>
@@ -277,6 +277,16 @@
           </property>
           <property name="popupMode">
            <enum>QToolButton::MenuButtonPopup</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="2">
+         <widget class="QLineEdit" name="CatsEdit"/>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Categories:</string>
           </property>
          </widget>
         </item>
@@ -294,8 +304,8 @@
   <tabstop>FileAuthorEdit</tabstop>
   <tabstop>GeoEdit</tabstop>
   <tabstop>FileLicenseCbx</tabstop>
-  <tabstop>pushButton</tabstop>
-  <tabstop>pushButton_2</tabstop>
+  <tabstop>infoBtn</tabstop>
+  <tabstop>previewBtn</tabstop>
  </tabstops>
  <resources/>
  <connections/>

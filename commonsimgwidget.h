@@ -90,9 +90,13 @@ namespace imup
             virtual void setGeoFromMetadata();
             virtual void showGeoOnMap();
 
+            virtual void showImagePreview();
+
         private slots:
             void on_FileDescTxtEdit_textChanged();
 
+
+            void on_CatsEdit_textEdited(const QString &arg1);
 
         private:
             Ui::CommonsImgWidget *ui;

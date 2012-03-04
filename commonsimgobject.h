@@ -34,7 +34,6 @@ namespace imup
             Q_OBJECT
         public:
             typedef std::tuple<double, double, double, double> Geo_t;
-            typedef QSet<QString> CCats_t;
 
             explicit CommonsImgObject(const QString &, QObject *parent = 0);
             ~CommonsImgObject();
@@ -52,9 +51,7 @@ namespace imup
             virtual const QString& cmsGeo() const;
             virtual const Geo_t& fileGeo() const;
             virtual QString &cmsGeo();
-
-            virtual const CCats_t& cmsCats() const;
-            virtual CCats_t& cmsCats();
+            virtual const QString& cmsCats() const;
 
             virtual const QUuid& uuid() const;
 
@@ -69,6 +66,7 @@ namespace imup
             virtual void setCmsDescription(const QString&);
             virtual void setCmsFilename(const QString&);
             virtual void setUuid(const QUuid& uuid = QUuid::createUuid());
+            virtual void setCmsCats(const QString & cats);
 
             virtual void fillCmsFromMetadata();
             virtual void fillCmsGeoFromMetadata();
@@ -89,7 +87,7 @@ namespace imup
           QDateTime cms_file_dt;
           QString cms_geo;
           Geo_t cms_file_geo;
-          CCats_t cms_cats;
+          QString cms_cats;
           QUuid objUuid;
 
           virtual void fillFromMetaData();

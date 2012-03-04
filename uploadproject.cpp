@@ -239,9 +239,8 @@ namespace imup
 
         proj_setts->setValue("cms_filename", imob->cmsFilename());
         proj_setts->setValue("cms_author", imob->cmsAuthor());
-        proj_setts->setValue("cms_cats", QStringList(imob->cmsCats().toList()));
+        proj_setts->setValue("cms_cats", imob->cmsCats());
         proj_setts->setValue("cms_datetime", imob->cmsDateTime());
-        //proj_setts->setValue("cms_filedatetime", imob->fileDateTime());
         proj_setts->setValue("cms_description", imob->cmsDescription());
         proj_setts->setValue("cms_geo", imob->cmsGeo());
         proj_setts->setValue("cms_license", imob->cmsLicense());
@@ -270,6 +269,7 @@ namespace imup
         imob->setCmsDescription(proj_setts->value("cms_description").toString());
         imob->setCmsLicense(proj_setts->value("cms_license").toString());
         imob->setCmsGeo(proj_setts->value("cms_geo").toString());
+        imob->setCmsCats(proj_setts->value("cms_cats").toString());
 
         proj_setts->endGroup();
     }
