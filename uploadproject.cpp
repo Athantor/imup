@@ -166,7 +166,7 @@ namespace imup
         }
 
         pre_load = is_modifed;
-        imldr = new ImageLoader(filelist, uuids, this);
+        imldr = new ImageLoader(filelist, uuids, false, this);
         imldr->start();
     }
 

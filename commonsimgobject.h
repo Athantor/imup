@@ -70,6 +70,10 @@ namespace imup
             virtual void setCmsFilename(const QString&);
             virtual void setUuid(const QUuid& uuid = QUuid::createUuid());
 
+            virtual void fillCmsFromMetadata();
+            virtual void fillCmsGeoFromMetadata();
+            virtual void fillCmsDtFromMetadata();
+
         protected slots:
             virtual void setFileGeo(double, double, double = NAN, double = NAN);
             virtual void setFileDateTime(const QDateTime&);

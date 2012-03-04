@@ -23,14 +23,14 @@
 
 namespace imup {
 
-    ImageLoader::ImageLoader(const QString & filedir, bool recursive, QObject *parent) :
+    ImageLoader::ImageLoader(const QString & filedir, bool recursive, bool fill, QObject *parent) :
         QThread(parent), path_to_load(filedir), uuidl(QHash<QString, QUuid>()), recurse(recursive), objs(0),
-        is_quitted(false)
+        is_quitted(false), fill_from_meta(fill)
     {
     }
 
-    ImageLoader::ImageLoader(const QStringList &files, QHash<QString, QUuid> uuidlist, QObject *parent) :
-        QThread(parent), file_paths(files), uuidl(uuidlist), objs(new QList<CommonsImgObject *>())
+    ImageLoader::ImageLoader(const QStringList &files, QHash<QString, QUuid> uuidlist, bool fill, QObject *parent) :
+        QThread(parent), file_paths(files), uuidl(uuidlist), objs(new QList<CommonsImgObject *>()), fill_from_meta(fill)
     {
     }
 
@@ -141,6 +141,9 @@ namespace imup {
         {
             CommonsImgObject *the_obj = new CommonsImgObject(file);
             the_obj->setUuid(uuidl.value(file, QUuid::createUuid()));;
+
+            if(fill_from_meta)
+                the_obj->fillCmsFromMetadata();
 
             loaded_ctr++;
 

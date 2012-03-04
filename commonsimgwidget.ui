@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>378</width>
+    <width>376</width>
     <height>309</height>
    </rect>
   </property>
@@ -73,7 +73,13 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QLineEdit" name="UploadFilenameEdit"/>
+         <widget class="QLineEdit" name="UploadFilenameEdit">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
         </item>
         <item row="3" column="1">
          <widget class="QLabel" name="label_3">
@@ -86,7 +92,13 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QLineEdit" name="FileSourceEdit"/>
+         <widget class="QLineEdit" name="FileSourceEdit">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
         </item>
         <item row="4" column="1">
          <widget class="QLabel" name="label_4">
@@ -99,7 +111,13 @@
          </widget>
         </item>
         <item row="4" column="2">
-         <widget class="QLineEdit" name="FileAuthorEdit"/>
+         <widget class="QLineEdit" name="FileAuthorEdit">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
         </item>
         <item row="5" column="1">
          <widget class="QLabel" name="label_5">
@@ -146,12 +164,52 @@
         </item>
         <item row="7" column="2">
          <widget class="QComboBox" name="FileLicenseCbx">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
           <property name="editable">
            <bool>true</bool>
           </property>
           <property name="insertPolicy">
            <enum>QComboBox::NoInsert</enum>
           </property>
+          <item>
+           <property name="text">
+            <string notr="true">{{self|GFDL|cc-by-sa-all}}</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>{{self|GFDL|cc-by-3.0}}</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>{{self|GFDL|cc-by-sa-3.0}}</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>{{self|cc-by-sa-3.0}}</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>{{self|Cc-zero}}</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>{{cc-by-sa-3.0}}</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>{{cc-by-3.0}}</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="7" column="1">
@@ -165,7 +223,13 @@
          </widget>
         </item>
         <item row="6" column="2">
-         <widget class="QLineEdit" name="GeoEdit"/>
+         <widget class="QLineEdit" name="GeoEdit">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
         </item>
         <item row="6" column="1">
          <widget class="QLabel" name="label_6">
@@ -185,7 +249,13 @@
          </widget>
         </item>
         <item row="5" column="2">
-         <widget class="QLineEdit" name="FileDtEdit"/>
+         <widget class="QLineEdit" name="FileDtEdit">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
         </item>
         <item row="5" column="3">
          <widget class="QToolButton" name="DtBtn">

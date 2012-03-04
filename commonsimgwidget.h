@@ -87,6 +87,9 @@ namespace imup
             virtual void setDateFromCal(const QDate &);
             virtual void setDateFromMetadata();
 
+            virtual void setGeoFromMetadata();
+            virtual void showGeoOnMap();
+
         private slots:
             void on_FileDescTxtEdit_textChanged();
 
@@ -97,6 +100,7 @@ namespace imup
             QAction *act_cal_date;
             QAction *act_exif_geo;
             QAction *act_show_geo_on_map;
+
             QScopedPointer<QCalendarWidget> calwgt;
 
             void makeActions();

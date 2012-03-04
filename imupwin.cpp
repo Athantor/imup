@@ -250,7 +250,7 @@ namespace imup
                 imloader->deleteLater();
             }
 
-            imloader = new ImageLoader(fls, QHash<QString, QUuid>(), this);
+            imloader = new ImageLoader(fls, QHash<QString, QUuid>(), true, this);
             imloader->start();
         }
     }
@@ -267,7 +267,7 @@ namespace imup
                 imloader->deleteLater();
             }
 
-            imloader = new ImageLoader(the_dir, true, this);
+            imloader = new ImageLoader(the_dir, true, true, this);
             imloader->start();
         }
     }

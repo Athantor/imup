@@ -58,6 +58,31 @@ namespace imup
         objUuid = uuid;
     }
 
+    void CommonsImgObject::fillCmsFromMetadata()
+    {
+        fillCmsGeoFromMetadata();
+        fillCmsDtFromMetadata();
+    }
+
+    void CommonsImgObject::fillCmsGeoFromMetadata()
+    {
+        QString geostr;
+
+        qDebug() << __PRETTY_FUNCTION__ << std::get<0>(cms_file_geo);
+
+        if(!std::isnan(std::get<0>(cms_file_geo)))
+            geostr = QString("{{Location dec|%1|%2}}").arg(std::get<0>(cms_file_geo) , 0, 'g', 8).arg(std::get<1>(cms_file_geo), 0, 'g', 8);
+        else
+            return;
+
+        setCmsGeo(geostr);
+    }
+
+    void CommonsImgObject::fillCmsDtFromMetadata()
+    {
+        setCmsDateTime(fileDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+    }
+
     const QString &CommonsImgObject::cmsDescription() const
     {
         return cms_desc;
@@ -180,6 +205,8 @@ namespace imup
         img_file->getMetaData("Exif.Photo.DateTimeOriginal", qvl);
         if(qvl.size() > 0)
             setFileDateTime(cms_file_dt = qvl.at(0).toDateTime());
+        else //no exif, use file ctime
+            setFileDateTime(cms_file_dt = img_file->getFileInfo().created());
 
         qvl.clear();
 

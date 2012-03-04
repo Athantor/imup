@@ -65,8 +65,8 @@ namespace imup {
                     const EventType evt_type;
             };
 
-            explicit ImageLoader(const QString & filedir, bool recursive = true, QObject *parent = 0);
-            explicit ImageLoader(const QStringList & files, QHash<QString, QUuid> uuidlist = QHash<QString, QUuid>(), QObject *parent = 0);
+            explicit ImageLoader(const QString & filedir, bool recursive = true, bool fill = true, QObject *parent = 0);
+            explicit ImageLoader(const QStringList & files, QHash<QString, QUuid> uuidlist = QHash<QString, QUuid>(), bool fill = false, QObject *parent = 0);
             virtual ~ImageLoader();
 
             QList<CommonsImgObject *>* objects(bool reparent);
@@ -88,7 +88,10 @@ namespace imup {
             bool recurse;
             QList<CommonsImgObject *>* objs;
             bool is_quitted;
+            bool fill_from_meta;
             quint64 loaded_ctr;
+
+
 
             bool makeFilePaths(const QString & p = QString());
             void makeCmsObjs();

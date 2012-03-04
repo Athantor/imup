@@ -15,8 +15,11 @@
    Krzysztof Kundzicz <athantor+cpp@athi.pl>
 */
 
+#include <QDebug>
 #include <QMessageBox>
 #include <QMenu>
+#include <QDesktopServices>
+#include <QUrl>
 
 
 #include "imupwin.h"
@@ -36,6 +39,7 @@ namespace imup
     CommonsImgWidget::CommonsImgWidget(const QString & filepath, QWidget *parent) :
         QWidget(parent), img_obj(new CommonsImgObject(filepath, this)), ui(new Ui::CommonsImgWidget)
     {
+        makeActions();
         commonSetup();
     }
 
@@ -70,6 +74,12 @@ namespace imup
         ui->GeoBtn->setMenu(new QMenu(tr("G")));
         ui->GeoBtn->menu()->addAction(act_show_geo_on_map);
         ui->GeoBtn->menu()->addAction(act_exif_geo);
+
+        if(std::isnan(std::get<0>( img_obj->fileGeo())))
+            act_exif_geo->setEnabled(false);
+
+        connect(act_exif_geo, SIGNAL(triggered()), this, SLOT(setGeoFromMetadata()));
+        connect(act_show_geo_on_map, SIGNAL(triggered()), this, SLOT(showGeoOnMap()));
     }
 
     CommonsImgWidget::~CommonsImgWidget()
@@ -106,28 +116,67 @@ namespace imup
 
         const ImageFile * imf = img_obj->imageFile();
 
-        ui->MainGrpBox->setTitle(imf->getFileInfo().canonicalFilePath());
-
-        ui->UploadFilenameEdit->setText(imf->getFileInfo().fileName());
-
-        ui->ThumbLbl->setPixmap(QPixmap::fromImage(imf->getPreviewIamge()));
-        ui->ThumbLbl->setToolTip(makeThumbTooltipText());
-
-        ui->FileSourceEdit->setText(tr("{{own}}"));
-        ui->FileAuthorEdit->setText(img_obj->cmsAuthor());
-        ui->FileDtEdit->setText(img_obj->cmsDateTime());
-
-        ui->FileDescTxtEdit->setPlainText(img_obj->cmsDescription());
-
-        //auto geo = img_obj->fileGeo();
-        // QString("{{Location dec|%1|%2}}").arg(std::get<0>(geo) , 0, 'g', 8).arg(std::get<0>(geo), 0, 'g', 8)
-        ui->GeoEdit->setText( img_obj-> cmsGeo() );
-
         connect(ui->UploadFilenameEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsFilename(QString)));
         connect(ui->FileAuthorEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsAuthor(QString)));
         connect(ui->FileSourceEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsFileSource(QString)));
         connect(ui->FileDtEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsDateTime(QString)));
         connect(ui->GeoEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsGeo(QString)));
+        connect(ui->FileLicenseCbx, SIGNAL(editTextChanged(QString)), img_obj, SLOT(setCmsLicense(QString)));
+
+        //----
+
+        ui->MainGrpBox->setTitle(imf->getFileInfo().canonicalFilePath());
+
+        //----
+
+        ui->UploadFilenameEdit->setText(imf->getFileInfo().fileName());
+
+        //----
+
+        ui->ThumbLbl->setPixmap(QPixmap::fromImage(imf->getPreviewIamge()));
+        ui->ThumbLbl->setToolTip(makeThumbTooltipText());
+
+        //----
+
+        ui->FileSourceEdit->setText(tr("{{own}}"));
+
+        //----
+
+        ui->FileAuthorEdit->setText(img_obj->cmsAuthor());
+
+        //----
+
+        ui->FileDtEdit->setText(img_obj->cmsDateTime());
+
+        //----
+
+        ui->FileDescTxtEdit->setPlainText(img_obj->cmsDescription());
+
+        //----
+
+        ui->GeoEdit->setText( img_obj-> cmsGeo() );
+
+        //----
+
+        int lic_idx = -1;
+        if(img_obj->cmsLicense().isEmpty() == false)
+        {
+            if((lic_idx = ui->FileLicenseCbx->findText(img_obj->cmsLicense())) > -1 )
+            {
+                ui->FileLicenseCbx->setCurrentIndex(lic_idx);
+            }
+            else
+            {
+                //ui->FileLicenseCbx->setCurrentIndex(-1);
+                ui->FileLicenseCbx->setEditText(img_obj->cmsLicense());
+            }
+        }
+        else
+        {
+            ui->FileLicenseCbx->setCurrentIndex(0);
+        }
+
+        //----
     }
 
     QString CommonsImgWidget::makeThumbTooltipText()
@@ -180,7 +229,46 @@ namespace imup
 
     void CommonsImgWidget::setDateFromMetadata()
     {
-        ui->FileDtEdit->setText(img_obj->fileDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+        img_obj->fillCmsDtFromMetadata();
+        ui->FileDtEdit->setText(img_obj->cmsDateTime());
+    }
+
+    void CommonsImgWidget::setGeoFromMetadata()
+    {
+        img_obj->fillCmsGeoFromMetadata();
+        ui->GeoEdit->setText(img_obj->cmsGeo());
+    }
+
+    void CommonsImgWidget::showGeoOnMap()
+    {
+        QString geos, qgeo;
+
+        if(ui->GeoEdit->text().isEmpty())
+        {
+            auto geo = img_obj->fileGeo();
+
+            if(img_obj->cmsGeo().isEmpty() == false)
+                geos = img_obj->cmsGeo();
+            else if(!std::isnan(std::get<0>(geo)))
+                qgeo = QString("?q=%1,%2").arg(std::get<0>(geo) , 0, 'g', 8).arg(std::get<1>(geo), 0, 'g', 8);
+        }
+        else
+            geos = ui->GeoEdit->text();
+
+        if(qgeo.isEmpty() && geos.isEmpty() == false)
+        {
+            QRegExp rx("[+-]?((180|1[0-7][0-9])|[0-9]{1,2})\\.[0-9]+");
+
+            if(geos.count(rx)>=2)
+            {
+                int pos = rx.indexIn(geos);
+                qgeo = rx.cap();
+                rx.indexIn(geos, pos+qgeo.size());
+                qgeo = "?q=" + qgeo + "," + rx.cap(0);
+            }
+        }
+
+        QDesktopServices::openUrl(QUrl("https://maps.google.com/"+qgeo));
     }
 
     void CommonsImgWidget::on_FileDescTxtEdit_textChanged()
