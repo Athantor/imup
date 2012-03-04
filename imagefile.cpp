@@ -92,9 +92,6 @@ namespace imup {
         return true;
     }
 
-
-
-
     const QFileInfo &ImageFile::getFileInfo() const
     {
         return fileInfo;

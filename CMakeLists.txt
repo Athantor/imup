@@ -22,6 +22,7 @@ SET(imup_SOURCES
     commonsimgwidget.cpp
     uploadproject.cpp
     imageloader.cpp
+    imagepreview.cpp
  )
 
 SET(imup_HEADERS  imupwin.h 
@@ -30,10 +31,12 @@ SET(imup_HEADERS  imupwin.h
     commonsimgwidget.h
     uploadproject.h
     imageloader.h
+    imagepreview.h
 )
 
 SET(imup_UIS  imupwin.ui 
     commonsimgwidget.ui
+    imagepreview.ui
 )
 
 QT4_WRAP_UI(imup_UIS_H ${imup_UIS})

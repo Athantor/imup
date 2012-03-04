@@ -21,8 +21,9 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-
 #include "imupwin.h"
+#include "imagepreview.h"
+
 #include "commonsimgwidget.h"
 #include "ui_commonsimgwidget.h"
 
@@ -122,6 +123,9 @@ namespace imup
         connect(ui->FileDtEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsDateTime(QString)));
         connect(ui->GeoEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsGeo(QString)));
         connect(ui->FileLicenseCbx, SIGNAL(editTextChanged(QString)), img_obj, SLOT(setCmsLicense(QString)));
+        connect(ui->CatsEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsCats(QString)));
+
+        connect(ui->previewBtn, SIGNAL(clicked()), this, SLOT(showImagePreview()));
 
         //----
 
@@ -177,6 +181,8 @@ namespace imup
         }
 
         //----
+
+        ui->CatsEdit->setText(img_obj->cmsCats());
     }
 
     QString CommonsImgWidget::makeThumbTooltipText()
@@ -271,11 +277,25 @@ namespace imup
         QDesktopServices::openUrl(QUrl("https://maps.google.com/"+qgeo));
     }
 
+    void CommonsImgWidget::showImagePreview()
+    {
+        ImagePreview* prv = new ImagePreview(img_obj, this);
+        prv->exec();
+        prv->deleteLater();
+    }
+
     void CommonsImgWidget::on_FileDescTxtEdit_textChanged()
     {
         img_obj->setCmsDescription(ui->FileDescTxtEdit->toPlainText());
     }
+
+    void CommonsImgWidget::on_CatsEdit_textEdited(const QString &arg1)
+    {
+        qDebug() << __PRETTY_FUNCTION__ << arg1 ;
+    }
+
 }
+
 
 
 
