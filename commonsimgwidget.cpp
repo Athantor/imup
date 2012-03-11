@@ -270,7 +270,9 @@ namespace imup
                 int pos = rx.indexIn(geos);
                 qgeo = rx.cap();
                 rx.indexIn(geos, pos+qgeo.size());
-                qgeo = "?q=" + qgeo + "," + rx.cap(0);
+                QString ll = qgeo + "," + rx.cap(0);
+
+                qgeo = "?q=" + ll + "&ll=" + ll + "&t=h&mrt=loc&z=15";
             }
         }
 
