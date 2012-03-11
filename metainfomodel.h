@@ -45,6 +45,7 @@ namespace imup
 
         public slots:
         private:
+            const int MD_SETS, COLS;
             const ImageFile&  imfile;
             QVector<QList<QPair<QString, QString> > > metakval;
 

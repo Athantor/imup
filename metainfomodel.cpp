@@ -25,7 +25,7 @@ namespace imup
 {
 
     MetainfoModel::MetainfoModel(const ImageFile& imf, QObject *parent) :
-        QAbstractItemModel(parent), imfile(imf), metakval(3)
+        QAbstractItemModel(parent), MD_SETS(3), COLS(2), imfile(imf), metakval(3)
     {
         Fill_meta();
     }
@@ -57,17 +57,17 @@ namespace imup
     int MetainfoModel::rowCount(const QModelIndex &parent) const
     {
         if(parent.isValid() == false) //top root: we have 3 metadata sets
-            return 3;
+            return MD_SETS;
         else if(parent.internalId() == 0) //metadata set
             return metakval.at(parent.row()).size();
         else
-            return 0; //leaf
+            return 0; //leaf → no children
     }
 
     int MetainfoModel::columnCount(const QModelIndex &parent) const
     {
         Q_UNUSED(parent);
-        return 2;
+        return COLS;
     }
 
     QVariant MetainfoModel::data(const QModelIndex &index, int role) const
@@ -93,7 +93,7 @@ namespace imup
                             return tr("XMP");
                         case ImageFile::MDT_Invalid:
                         default:
-                            return tr("<imup:error>");
+                            return tr("<imup:error:MDS>");
                     }
                 }
                 else if(index.column() == 1)
@@ -142,10 +142,6 @@ namespace imup
 
     QVariant MetainfoModel::headerData(int section, Qt::Orientation orientation, int role) const
     {
-        Q_UNUSED(section);
-        Q_UNUSED(orientation);
-        Q_UNUSED(role);
-
         if(role == Qt::DisplayRole)
         {
             if(orientation == Qt::Horizontal)
@@ -159,7 +155,7 @@ namespace imup
                         return tr("Value");
                         break;
                     default:
-                        return tr("WAT?! %1").arg(section);
+                        return tr("WAT‽ %1").arg(section);
                         break;
                 }
             }

@@ -283,7 +283,10 @@ namespace imup
 
     void CommonsImgWidget::showMetaInfo()
     {
+        setCursor(Qt::BusyCursor);
         QScopedPointer<MetainfoDialog> dlg(new MetainfoDialog(*getImgObj()->imageFile()));
+        unsetCursor();
+
         dlg->exec();
     }
 
