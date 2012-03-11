@@ -50,6 +50,7 @@ namespace imup {
                 MDT_Invalid
             };
 
+            typedef QMultiMap<QString, QVariant> TagList_t;
             explicit ImageFile(const QString &, QObject *parent = 0);
             ~ImageFile();
 
@@ -63,8 +64,10 @@ namespace imup {
             virtual const Exiv2::Image::AutoPtr& getImageMetaData() const;
             virtual QVariantList& getMetaData(const QString &, QVariantList&, MetadataType = MDT_EXIF);
             virtual QString& getMetaData(const QString&, QString&, MetadataType = MDT_EXIF);
+            virtual TagList_t getMetaData(MetadataType mdType = MDT_EXIF) const;
 
             static bool convertMetaData(const Exiv2::Value&, quint32 , QVariant&);
+            static double vector2dbl(const QVariantList & qvl);
 
         protected:
             const QString filePath;
@@ -76,6 +79,9 @@ namespace imup {
             virtual bool loadPreviewImg();
             virtual bool creatPreviewImg();
             virtual const Exiv2::Metadatum* selectFromMetadatum(const QString&, MetadataType) const ;
+
+            template<typename DatumT>
+            void Fill_map(const DatumT& datum, TagList_t & ret_m) const;
 
         public slots:
         signals:

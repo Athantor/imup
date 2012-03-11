@@ -261,22 +261,7 @@ namespace imup
         double ret = NAN;
 
         img_file->getMetaData(tag, qvl);
-        if(qvl.size() == 3)
-        {
-            const QVector2D& deg = qvl.at(0).value<QVector2D>(), min = qvl.at(1).value<QVector2D>(), sec = qvl.at(2).value<QVector2D>();
-
-            if(sec.x() == 0 && sec.y() == 1)
-                ret = deg.x() + ((min.x() / (min.y())) / 60.);
-            else
-                ret = deg.x() + (min.x() / 60.) + (sec.x() / 3600.);
-
-        }
-        else if(qvl.size() == 1)
-        {
-            const QVector2D& deg = qvl.at(0).value<QVector2D>();
-            if(deg.y() != 0)
-                ret = deg.x() / deg.y();
-        }
+        ret = ImageFile::vector2dbl(qvl);
 
         QString ref;
         if(isnan(ret) == 0 && tref_r.isEmpty() == false && tref.isEmpty() == false)

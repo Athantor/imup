@@ -92,6 +92,7 @@ namespace imup {
         return true;
     }
 
+
     const QFileInfo &ImageFile::getFileInfo() const
     {
         return fileInfo;
@@ -149,7 +150,7 @@ namespace imup {
             const Exiv2::Value &val = md->value();
             quint32 cnt = 1;
 
-            if(val.typeId() != Exiv2::asciiString)
+            if(val.typeId() != Exiv2::asciiString && val.typeId() != Exiv2::string && val.typeId() != Exiv2::xmpText)
                 cnt = md->count();
 
             for(quint32 i = 0; i < cnt; ++i)
@@ -169,9 +170,79 @@ namespace imup {
 
         mdVal.clear();
         if(md)
-           mdVal = QString::fromStdString(md->toString());
+            mdVal = QString::fromStdString(md->toString());
 
         return mdVal;
+    }
+
+    template<typename DatumT>
+    void ImageFile::Fill_map(const DatumT& datum, TagList_t & ret_m) const
+    {
+        ret_m.clear();
+        for(typename DatumT::const_iterator it = datum.begin(); it != datum.end(); ++it)
+        {
+            int count = it->count();
+            QString key = QString::fromStdString(it->key());
+
+            if(it->typeId() == Exiv2::asciiString)
+                count =1;
+
+            if(Q_LIKELY(count > 0))
+            {
+                QString mystr = "";
+                QVariantList qvl;
+
+                for(int cnt = 0; cnt < count; ++cnt)
+                {
+                    QVariant md;
+                    convertMetaData(it->value(), cnt, md);
+
+                    if(it->typeId() == Exiv2::asciiString || it->typeId() ==Exiv2::string || it->typeId() == Exiv2::xmpText)
+                        mystr = md.toString();
+                    else if(md.type() == QVariant::Vector2D)
+                        qvl << md;
+                    else
+                        mystr += (mystr.isEmpty() ? "" : " ") + md.toString();
+                }
+
+                if(qvl.isEmpty() == false)
+                    mystr = QString::number(vector2dbl(qvl), 'g', 8);
+
+                if(mystr.isEmpty())
+                    mystr = QString::fromStdString(it->value().toString());
+
+                ret_m.insertMulti(key, mystr);
+
+            }
+            else
+            {
+                //ret_m.insertMulti(key, "-");
+            }
+        }
+    }
+
+    ImageFile::TagList_t ImageFile::getMetaData(ImageFile::MetadataType mdType) const
+    {
+        ImageFile::TagList_t retmap;
+
+        switch(mdType)
+        {
+            case MDT_EXIF:
+                Fill_map<Exiv2::ExifData>(imgMetaData->exifData(), retmap);
+                break;
+            case MDT_IPTC:
+                Fill_map<Exiv2::IptcData>(imgMetaData->iptcData(), retmap);
+                break;
+            case MDT_XMP:
+                Fill_map<Exiv2::XmpData>(imgMetaData->xmpData(), retmap);
+                break;
+            case MDT_Invalid:
+            default:
+                qWarning() << tr("%1: Invalid metadata type!").arg(__PRETTY_FUNCTION__);
+                retmap.clear();
+        }
+
+        return retmap;
     }
 
     bool ImageFile::convertMetaData(const Exiv2::Value &val, quint32 n, QVariant & dst)
@@ -184,7 +255,7 @@ namespace imup {
             toInt << Exiv2::unsignedByte <<Exiv2::unsignedShort << Exiv2::unsignedLong << Exiv2::signedByte << Exiv2::signedShort << Exiv2::signedLong;
             toRat << Exiv2::signedRational << Exiv2::unsignedRational;
             toDouble << Exiv2::tiffFloat << Exiv2::tiffDouble;
-            toString << Exiv2::asciiString << Exiv2::string << Exiv2::comment;
+            toString << Exiv2::asciiString << Exiv2::string << Exiv2::comment << Exiv2::xmpText;
         }
 
         if(toInt.contains(tid))
@@ -213,10 +284,10 @@ namespace imup {
         }
         else if(tid == Exiv2::time)
         {
-             const Exiv2::TimeValue &tval = dynamic_cast<const Exiv2::TimeValue&>(val);
-             const Exiv2::TimeValue::Time &tv = tval.getTime();
+            const Exiv2::TimeValue &tval = dynamic_cast<const Exiv2::TimeValue&>(val);
+            const Exiv2::TimeValue::Time &tv = tval.getTime();
 
-             dst = QVariant(QTime(tv.hour, tv.minute, tv.second));
+            dst = QVariant(QTime(tv.hour, tv.minute, tv.second));
         }
         else
         {
@@ -224,5 +295,28 @@ namespace imup {
         }
 
         return true;
+    }
+
+    double ImageFile::vector2dbl(const QVariantList &qvl)
+    {
+        double ret = NAN;
+        if(qvl.size() == 3)
+        {
+            const QVector2D& deg = qvl.at(0).value<QVector2D>(), min = qvl.at(1).value<QVector2D>(), sec = qvl.at(2).value<QVector2D>();
+
+            if(sec.x() == 0 && sec.y() == 1)
+                ret = deg.x() + ((min.x() / (min.y())) / 60.);
+            else
+                ret = deg.x() + (min.x() / 60.) + (sec.x() / 3600.);
+
+        }
+        else if(qvl.size() == 1)
+        {
+            const QVector2D& deg = qvl.at(0).value<QVector2D>();
+            if(deg.y() != 0)
+                ret = deg.x() / deg.y();
+        }
+
+        return ret;
     }
 }

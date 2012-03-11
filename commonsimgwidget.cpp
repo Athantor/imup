@@ -23,6 +23,7 @@
 
 #include "imupwin.h"
 #include "imagepreview.h"
+#include "metainfodialog.h"
 
 #include "commonsimgwidget.h"
 #include "ui_commonsimgwidget.h"
@@ -125,6 +126,7 @@ namespace imup
         connect(ui->FileLicenseCbx, SIGNAL(editTextChanged(QString)), img_obj, SLOT(setCmsLicense(QString)));
         connect(ui->CatsEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsCats(QString)));
 
+        connect(ui->infoBtn, SIGNAL(clicked()), this, SLOT(showMetaInfo()));
         connect(ui->previewBtn, SIGNAL(clicked()), this, SLOT(showImagePreview()));
 
         //----
@@ -277,6 +279,12 @@ namespace imup
         }
 
         QDesktopServices::openUrl(QUrl("https://maps.google.com/"+qgeo));
+    }
+
+    void CommonsImgWidget::showMetaInfo()
+    {
+        QScopedPointer<MetainfoDialog> dlg(new MetainfoDialog(*getImgObj()->imageFile()));
+        dlg->exec();
     }
 
     void CommonsImgWidget::showImagePreview()

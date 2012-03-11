@@ -90,6 +90,7 @@ namespace imup
             virtual void setGeoFromMetadata();
             virtual void showGeoOnMap();
 
+            virtual void showMetaInfo();
             virtual void showImagePreview();
 
         private slots:
