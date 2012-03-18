@@ -72,6 +72,8 @@ namespace imup
 
             CommonsImgObject * getImgObj();
             const CommonsImgObject * getImgObj() const ;
+
+            virtual bool eventFilter(QObject *ob, QEvent *ev);
         protected:
             CommonsImgObject *img_obj;
 
@@ -105,6 +107,8 @@ namespace imup
             QAction *act_cal_date;
             QAction *act_exif_geo;
             QAction *act_show_geo_on_map;
+            QAction *act_show_metainfo;
+            QAction *act_show_preview;
 
             QScopedPointer<QCalendarWidget> calwgt;
 

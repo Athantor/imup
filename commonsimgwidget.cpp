@@ -52,12 +52,17 @@ namespace imup
         act_cal_date = new QAction(QIcon(), tr("Get date from &calendar"), this);
         act_exif_geo = new QAction(QIcon(), tr("&Get geo from metadata"), this);
         act_show_geo_on_map = new QAction(QIcon(), tr("Show geo on &map"), this);
+
+        act_show_metainfo = new QAction(QIcon(), tr("Show image metadata…"), this);
+        act_show_preview = new QAction(QIcon(), tr("Show image preview…"), this);
     }
 
     void CommonsImgWidget::commonSetup()
     {
         ui->setupUi(this);
         setupFields();
+
+        ui->ThumbLbl->installEventFilter(this);
 
         calwgt.reset(new QCalendarWidget(0));
         calwgt->setMaximumDate(QDate::currentDate());
@@ -82,6 +87,9 @@ namespace imup
 
         connect(act_exif_geo, SIGNAL(triggered()), this, SLOT(setGeoFromMetadata()));
         connect(act_show_geo_on_map, SIGNAL(triggered()), this, SLOT(showGeoOnMap()));
+
+        connect(act_show_metainfo, SIGNAL(triggered()), this, SLOT(showMetaInfo()));
+        connect(act_show_preview, SIGNAL(triggered()), this, SLOT(showImagePreview()));
     }
 
     CommonsImgWidget::~CommonsImgWidget()
@@ -97,6 +105,24 @@ namespace imup
     const CommonsImgObject *CommonsImgWidget::getImgObj() const
     {
         return img_obj;
+    }
+
+    bool CommonsImgWidget::eventFilter(QObject * ob, QEvent *ev)
+    {
+        if(ob == ui->ThumbLbl)
+        {
+            if(ev->type() == QEvent::MouseButtonDblClick)
+            {
+                QMouseEvent *evt = dynamic_cast<decltype(evt)>(ev);
+                if(evt->button() == Qt::LeftButton)
+                {
+                    act_show_preview->trigger();
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     void CommonsImgWidget::changeEvent(QEvent *e)
@@ -126,8 +152,8 @@ namespace imup
         connect(ui->FileLicenseCbx, SIGNAL(editTextChanged(QString)), img_obj, SLOT(setCmsLicense(QString)));
         connect(ui->CatsEdit, SIGNAL(textChanged(QString)), img_obj, SLOT(setCmsCats(QString)));
 
-        connect(ui->infoBtn, SIGNAL(clicked()), this, SLOT(showMetaInfo()));
-        connect(ui->previewBtn, SIGNAL(clicked()), this, SLOT(showImagePreview()));
+        connect(ui->infoBtn, SIGNAL(clicked()), act_show_metainfo, SIGNAL(triggered()));
+        connect(ui->previewBtn, SIGNAL(clicked()), act_show_preview, SIGNAL(triggered()));
 
         //----
 
