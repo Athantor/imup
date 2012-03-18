@@ -103,7 +103,7 @@ namespace imup
             }
             else
             {
-                int idx = index.internalId()-1; //leaf parent → a metadata set
+                const int idx = index.internalId()-1; //leaf parent → a metadata set
 
                // qDebug() << __PRETTY_FUNCTION__ << index;
 
@@ -127,6 +127,25 @@ namespace imup
                 {
                     return tr("<imup:err:col>");
                 }
+            }
+        }
+        else if(role == Qt::ToolTipRole)
+        {
+            const int idx = index.internalId()-1;
+            if(idx >= 0 && index.column() == 1)
+            {
+                auto mdtype = row2metatype(idx);
+                if(mdtype == ImageFile::MDT_Invalid)
+                    return QVariant();
+
+                 auto kval = metakval[idx];
+                 if(index.row() > kval.size())
+                     return QVariant();
+
+                 QString md;
+                 imfile.getMetaData(kval.at(index.row()).first, md, mdtype);
+
+               return  "<tt>" + md + "</tt>";
             }
         }
         else if(role == Qt::BackgroundRole)

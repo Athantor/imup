@@ -137,7 +137,7 @@ namespace imup {
         return md;
     }
 
-    QVariantList &ImageFile::getMetaData(const QString & mdTag, QVariantList& mdValue, ImageFile::MetadataType mdType)
+    QVariantList &ImageFile::getMetaData(const QString & mdTag, QVariantList& mdValue, ImageFile::MetadataType mdType) const
     {
         mdValue.clear();
         if(mdType == MDT_Invalid || mdTag.isEmpty())
@@ -164,7 +164,7 @@ namespace imup {
         return mdValue;
     }
 
-    QString &ImageFile::getMetaData(const QString & mdTag, QString & mdVal, ImageFile::MetadataType mdType)
+    QString &ImageFile::getMetaData(const QString & mdTag, QString & mdVal, ImageFile::MetadataType mdType) const
     {
         const Exiv2::Metadatum *md = selectFromMetadatum(mdTag, mdType);
 

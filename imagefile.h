@@ -62,8 +62,8 @@ namespace imup {
             virtual const QImage& getPreviewIamge() const;
 
             virtual const Exiv2::Image::AutoPtr& getImageMetaData() const;
-            virtual QVariantList& getMetaData(const QString &, QVariantList&, MetadataType = MDT_EXIF);
-            virtual QString& getMetaData(const QString&, QString&, MetadataType = MDT_EXIF);
+            virtual QVariantList& getMetaData(const QString &, QVariantList&, MetadataType = MDT_EXIF) const;
+            virtual QString& getMetaData(const QString&, QString&, MetadataType = MDT_EXIF) const;
             virtual TagList_t getMetaData(MetadataType mdType = MDT_EXIF) const;
 
             static bool convertMetaData(const Exiv2::Value&, quint32 , QVariant&);

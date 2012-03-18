@@ -21,6 +21,7 @@
 #include <QAbstractItemModel>
 #include <QVector>
 #include <QList>
+#include <QCache>
 
 #include "imagefile.h"
 
@@ -47,7 +48,8 @@ namespace imup
         private:
             const int MD_SETS, COLS;
             const ImageFile&  imfile;
-            QVector<QList<QPair<QString, QString> > > metakval;
+            QVector<QList<QPair<QString, QString> > > metakval; //[mdata][row]<key, val>
+            QCache<QModelIndex, QString> ttip_cache;
 
 
             void Fill_meta();
