@@ -19,6 +19,7 @@
 #define METAINFOMODEL_H
 
 #include <QAbstractItemModel>
+#include <QScopedPointer>
 #include <QVector>
 #include <QList>
 #include <QCache>
@@ -49,7 +50,7 @@ namespace imup
             const int MD_SETS, COLS;
             const ImageFile&  imfile;
             QVector<QList<QPair<QString, QString> > > metakval; //[mdata][row]<key, val>
-            QCache<QModelIndex, QString> ttip_cache;
+            QScopedPointer<QCache<QPair<int, int>, QString> > ttip_cache; // <<mdt, row>, tooltip>
 
 
             void Fill_meta();

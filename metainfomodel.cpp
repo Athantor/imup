@@ -25,7 +25,8 @@ namespace imup
 {
 
     MetainfoModel::MetainfoModel(const ImageFile& imf, QObject *parent) :
-        QAbstractItemModel(parent), MD_SETS(3), COLS(2), imfile(imf), metakval(3)
+        QAbstractItemModel(parent), MD_SETS(3), COLS(2), imfile(imf), metakval(3),
+        ttip_cache(new QCache<QPair<int, int>, QString>)
     {
         Fill_meta();
     }
@@ -134,18 +135,28 @@ namespace imup
             const int idx = index.internalId()-1;
             if(idx >= 0 && index.column() == 1)
             {
-                auto mdtype = row2metatype(idx);
-                if(mdtype == ImageFile::MDT_Invalid)
-                    return QVariant();
+                QString md;
+                auto cache_key = qMakePair(idx, index.row());
 
-                 auto kval = metakval[idx];
-                 if(index.row() > kval.size())
-                     return QVariant();
+                if(ttip_cache->contains(cache_key))
+                {
+                    md = *ttip_cache->object(cache_key);
+                }
+                else
+                {
+                    auto mdtype = row2metatype(idx);
+                    if(mdtype == ImageFile::MDT_Invalid)
+                        return QVariant();
 
-                 QString md;
-                 imfile.getMetaData(kval.at(index.row()).first, md, mdtype);
+                    auto kval = metakval[idx];
+                    if(index.row() > kval.size())
+                        return QVariant();
 
-               return  "<tt>" + md + "</tt>";
+                    imfile.getMetaData(kval.at(index.row()).first, md, mdtype);
+                    ttip_cache->insert(cache_key, new QString(md));
+                }
+
+                return  "<tt>" + md + "</tt>";
             }
         }
         else if(role == Qt::BackgroundRole)
