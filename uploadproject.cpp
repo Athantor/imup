@@ -244,6 +244,7 @@ namespace imup
         proj_setts->setValue("cms_description", imob->cmsDescription());
         proj_setts->setValue("cms_geo", imob->cmsGeo());
         proj_setts->setValue("cms_license", imob->cmsLicense());
+        proj_setts->setValue("upload_it", imob->isMarkedForUplad());
 
         QVariantList geos;
         geos << std::get<0>(imob->fileGeo()) << std::get<1>(imob->fileGeo())<< std::get<2>(imob->fileGeo()) << std::get<3>(imob->fileGeo());
@@ -270,6 +271,7 @@ namespace imup
         imob->setCmsLicense(proj_setts->value("cms_license").toString());
         imob->setCmsGeo(proj_setts->value("cms_geo").toString());
         imob->setCmsCats(proj_setts->value("cms_cats").toString());
+        imob->markForUpload(proj_setts->value("upload_it", false).toBool());
 
         proj_setts->endGroup();
     }

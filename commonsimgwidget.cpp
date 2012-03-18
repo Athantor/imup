@@ -55,6 +55,8 @@ namespace imup
 
         act_show_metainfo = new QAction(QIcon(), tr("Show image metadata…"), this);
         act_show_preview = new QAction(QIcon(), tr("Show image preview…"), this);
+
+        act_toggle_upload = new QAction(QIcon(), tr("Toggle upload"), this);
     }
 
     void CommonsImgWidget::commonSetup()
@@ -90,6 +92,8 @@ namespace imup
 
         connect(act_show_metainfo, SIGNAL(triggered()), this, SLOT(showMetaInfo()));
         connect(act_show_preview, SIGNAL(triggered()), this, SLOT(showImagePreview()));
+
+        connect(act_toggle_upload, SIGNAL(triggered(bool)), this, SLOT(toggleUpload(bool)));
     }
 
     CommonsImgWidget::~CommonsImgWidget()
@@ -155,6 +159,8 @@ namespace imup
         connect(ui->infoBtn, SIGNAL(clicked()), act_show_metainfo, SIGNAL(triggered()));
         connect(ui->previewBtn, SIGNAL(clicked()), act_show_preview, SIGNAL(triggered()));
 
+        connect(ui->uploadChb, SIGNAL(toggled(bool)), act_toggle_upload, SIGNAL(triggered(bool)));
+
         //----
 
         ui->MainGrpBox->setTitle(imf->getFileInfo().canonicalFilePath());
@@ -211,6 +217,10 @@ namespace imup
         //----
 
         ui->CatsEdit->setText(img_obj->cmsCats());
+
+        //----
+
+        ui->uploadChb->setChecked(img_obj->isMarkedForUplad());
     }
 
     QString CommonsImgWidget::makeThumbTooltipText()
@@ -321,6 +331,12 @@ namespace imup
         ImagePreview* prv = new ImagePreview(img_obj, this);
         prv->exec();
         prv->deleteLater();
+    }
+
+    void CommonsImgWidget::toggleUpload(bool tgl)
+    {
+        img_obj->markForUpload(tgl);
+        qDebug() << tgl;
     }
 
     void CommonsImgWidget::on_FileDescTxtEdit_textChanged()

@@ -52,6 +52,7 @@ namespace imup
             virtual const Geo_t& fileGeo() const;
             virtual QString &cmsGeo();
             virtual const QString& cmsCats() const;
+            virtual bool isMarkedForUplad() const;
 
             virtual const QUuid& uuid() const;
 
@@ -67,6 +68,7 @@ namespace imup
             virtual void setCmsFilename(const QString&);
             virtual void setUuid(const QUuid& uuid = QUuid::createUuid());
             virtual void setCmsCats(const QString & cats);
+            virtual void markForUpload(bool ena);
 
             virtual void fillCmsFromMetadata();
             virtual void fillCmsGeoFromMetadata();
@@ -89,6 +91,7 @@ namespace imup
           Geo_t cms_file_geo;
           QString cms_cats;
           QUuid objUuid;
+          bool upload_it;
 
           virtual void fillFromMetaData();
           virtual double calcLonLat(quint8 mode);

@@ -54,6 +54,20 @@
        </layout>
       </item>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QCheckBox" name="uploadChb">
+          <property name="text">
+           <string>Upload</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <layout class="QGridLayout" name="gridLay">
         <item row="2" column="2">
          <widget class="QTextEdit" name="FileDescTxtEdit">

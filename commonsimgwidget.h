@@ -95,6 +95,8 @@ namespace imup
             virtual void showMetaInfo();
             virtual void showImagePreview();
 
+            virtual void toggleUpload(bool tgl);
+
         private slots:
             void on_FileDescTxtEdit_textChanged();
 
@@ -109,6 +111,7 @@ namespace imup
             QAction *act_show_geo_on_map;
             QAction *act_show_metainfo;
             QAction *act_show_preview;
+            QAction *act_toggle_upload;
 
             QScopedPointer<QCalendarWidget> calwgt;
 

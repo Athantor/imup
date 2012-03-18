@@ -63,6 +63,7 @@ namespace imup
         cms_cats = cats;
     }
 
+
     void CommonsImgObject::fillCmsFromMetadata()
     {
         fillCmsGeoFromMetadata();
@@ -178,6 +179,16 @@ namespace imup
     const QString &CommonsImgObject::cmsCats() const
     {
         return cms_cats;
+    }
+
+    bool CommonsImgObject::isMarkedForUplad() const
+    {
+        return upload_it;
+    }
+
+    void CommonsImgObject::markForUpload(bool ena)
+    {
+        upload_it = ena;
     }
 
     const QUuid &CommonsImgObject::uuid() const
