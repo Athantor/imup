@@ -21,6 +21,8 @@
 #include <QtGui/QMainWindow>
 #include <QCloseEvent>
 #include <QProgressDialog>
+#include <QList>
+#include <QUrl>
 
 #include "uploadproject.h"
 #include "commonsimgwidget.h"
@@ -43,15 +45,18 @@ namespace imup
             static imupWin* instance();
             const QSettings& getSetts() const;
 
+            virtual void dragEnterEvent(QDragEnterEvent *evt);
+            virtual void dropEvent(QDropEvent *evt);
+
         public slots:
             bool saveProject();
             bool saveProjectAs(const QString &ppath = QString());
-            bool loadProject();
+            bool loadProject(const QString &fproj = QString());
             bool newProject();
 
             void addFileObject(CommonsImgObject * cms_o);
-            void addFiles();
-            void addDirectory();
+            void addFiles(const QStringList & flist = QStringList());
+            void addDirectory(const QString & dir = QString());
 
         protected:
             void changeEvent(QEvent *e);
@@ -60,6 +65,8 @@ namespace imup
             void makeToolbarButtons();
 
             bool eventFilter ( QObject * watched, QEvent * e );
+
+            virtual void multiLoad(const QList<QUrl> &urllist);
 
         protected slots:
             void addImageWidgetsFromProject();

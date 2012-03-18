@@ -26,6 +26,7 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QUrl>
 
 #include "imupwin.h"
 #include "ui_imupwin.h"
@@ -83,6 +84,20 @@ namespace imup
     const QSettings &imupWin::getSetts() const
     {
         return global_setts;
+    }
+
+    void imupWin::dragEnterEvent(QDragEnterEvent *evt)
+    {
+        if(evt->mimeData() == 0)
+            return;
+
+        if(evt->mimeData()->urls().size() > 0)
+            evt->acceptProposedAction();
+    }
+
+    void imupWin::dropEvent(QDropEvent *evt)
+    {
+        multiLoad( evt->mimeData()->urls() );
     }
 
     bool imupWin::saveProject()
@@ -149,18 +164,25 @@ namespace imup
         }
     }
 
-    bool imupWin::loadProject()
+    bool imupWin::loadProject(const QString &fproj)
     {
-        if(proj->objects().size() > 0 && proj->isModified())
+        QString qs;
+        if(fproj.isEmpty())
         {
-            if(QMessageBox::question(this, tr("Save unsaved?"), tr("There are unsaved changes. Do you wish to save them before opening other project?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+            if(proj->objects().size() > 0 && proj->isModified())
             {
-                if(saveProject() == false)
-                    return false;
+                if(QMessageBox::question(this, tr("Save unsaved?"), tr("There are unsaved changes. Do you wish to save them before opening other project?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+                {
+                    if(saveProject() == false)
+                        return false;
+                }
             }
-        }
 
-        QString qs = QFileDialog::getOpenFileName(this, tr("Open project…"), QDir::homePath(), tr("Project files (*.ini) (*.ini);;All files (*) (*)"));
+            qs = QFileDialog::getOpenFileName(this, tr("Open project…"), QDir::homePath(), tr("Project files (*.ini) (*.ini);;All files (*) (*)"));
+        }
+        else
+            qs = fproj;
+
         if(qs.isEmpty())
             return false;
 
@@ -236,12 +258,18 @@ namespace imup
         }
     }
 
-    void imupWin::addFiles()
+    void imupWin::addFiles(const QStringList &flist)
     {
-        QString flttxt = tr("Images (%1) (%1);;All files (*.*) (*)").arg(global_setts.value("files/types_filter").toStringList().join(" "));
+        QStringList fls;
 
+        if(flist.isEmpty())
+        {
+            QString flttxt = tr("Images (%1) (%1);;All files (*.*) (*)").arg(global_setts.value("files/types_filter").toStringList().join(" "));
+            fls = QFileDialog::getOpenFileNames(this, tr("Select files…"), QDir::homePath(), flttxt);
+        }
+        else
+            fls = flist;
 
-        QStringList fls = QFileDialog::getOpenFileNames(this, tr("Select files…"), QDir::homePath(), flttxt);
         if(fls.empty() == false)
         {
             if(imloader)
@@ -255,9 +283,13 @@ namespace imup
         }
     }
 
-    void imupWin::addDirectory()
+    void imupWin::addDirectory(const QString &dir)
     {
-        QString the_dir = QFileDialog::getExistingDirectory(this, tr("Select directory…"), QDir::homePath());
+        QString the_dir;
+        if(dir.isEmpty())
+            the_dir = QFileDialog::getExistingDirectory(this, tr("Select directory…"), QDir::homePath());
+        else
+            the_dir = dir;
 
         if(the_dir.isEmpty() == false)
         {
@@ -449,6 +481,65 @@ namespace imup
         }
 
         return false;
+    }
+
+    void imupWin::multiLoad(const QList<QUrl> & urllist)
+    {
+        if(urllist.size() < 1)
+            return;
+
+        QRegExp img_wc("\\.(" + global_setts.value("files/types_filter").toStringList().join("|").remove("*.") + ")$",Qt::CaseInsensitive, QRegExp::RegExp);
+        QRegExp proj_wc("\\.(ini|txt)$",Qt::CaseInsensitive, QRegExp::RegExp);
+
+
+        QStringList files, dirs, projs;
+
+        foreach(const QUrl& url, urllist)
+        {
+            const QString &fpath = url.path();
+            QFileInfo qfi(fpath);
+
+            qDebug() << __FUNCTION__ << fpath << fpath.indexOf(img_wc) << fpath.indexOf(proj_wc);
+
+            if(qfi.isReadable())
+            {
+                if(qfi.isDir())
+                {
+                    dirs << fpath;
+                }
+                else if(fpath.indexOf(img_wc) > 1)
+                {
+                    files << fpath;
+                }
+                else if(fpath.indexOf(proj_wc) > 1)
+                {
+                    projs << fpath;
+                }
+            }
+        }
+
+        if(dirs.isEmpty() && files.isEmpty() && projs.isEmpty())
+        {
+            QMessageBox::information(this, tr("Problem"), tr("Didn't recognize anything that could be loaded, so I'm not doing anything."));
+        }
+        else
+        {
+            QMessageBox::StandardButton baton =  QMessageBox::question(this, tr("Load?"),
+                                                                   tr("Do you wish to load %1 image(s), %2 dir(s), %3 project(s)?").arg(files.size()).arg(dirs.size()).arg(projs.size()),
+                                                                   QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+
+            if(baton == QMessageBox::Yes)
+            {
+                if(files.isEmpty() == false)
+                    addFiles(files);
+
+                foreach(const QString& d, dirs)
+                    addDirectory(d);
+
+                foreach(const QString &p, projs)
+                    loadProject(p);
+            }
+        }
     }
 
     void imupWin::addImageWidgetsFromProject()

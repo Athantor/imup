@@ -16,6 +16,9 @@
     <height>480</height>
    </size>
   </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
   <property name="windowTitle">
    <string>imup</string>
   </property>
