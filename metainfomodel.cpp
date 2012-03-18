@@ -156,6 +156,10 @@ namespace imup
                     ttip_cache->insert(cache_key, new QString(md));
                 }
 
+                //if it's the same as display value, don't show tooltip
+                if(md.isEmpty() == false &&  metakval[idx].at(index.row()).second == md)
+                    return QVariant();
+
                 return  "<tt>" + md + "</tt>";
             }
         }
