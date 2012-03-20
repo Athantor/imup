@@ -92,7 +92,6 @@ namespace imup {
             quint64 loaded_ctr;
 
 
-
             bool makeFilePaths(const QString & p = QString());
             void makeCmsObjs();
     };

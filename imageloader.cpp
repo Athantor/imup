@@ -97,7 +97,6 @@ namespace imup {
         }
 
         emit finished();
-
     }
 
     bool ImageLoader::makeFilePaths(const QString & p)

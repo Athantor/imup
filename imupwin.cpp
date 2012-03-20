@@ -271,9 +271,10 @@ namespace imup
             fls = flist;
 
         if(fls.empty() == false)
-        {
+        {            
             if(imloader)
             {
+                imloader->wait();
                 imloader ->terminate();
                 imloader->deleteLater();
             }
@@ -295,6 +296,7 @@ namespace imup
         {
             if(imloader)
             {
+                imloader->wait();
                 imloader ->terminate();
                 imloader->deleteLater();
             }
