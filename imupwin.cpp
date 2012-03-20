@@ -528,9 +528,39 @@ namespace imup
         }
         else
         {
-            QMessageBox::StandardButton baton =  QMessageBox::question(this, tr("Load?"),
-                                                                   tr("Do you wish to load %1 image(s), %2 dir(s), %3 project(s)?").arg(files.size()).arg(dirs.size()).arg(projs.size()),
-                                                                   QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+
+            quint8 ask = !files.isEmpty() + !dirs.isEmpty() + !projs.isEmpty();
+
+
+            QMessageBox::StandardButton baton = QMessageBox::Yes;
+
+            if(ask > 1)
+            {
+                QString ques = tr("Do you wish to load ");
+                ask = 0;
+
+                if(!files.isEmpty())
+                {
+                    ques += tr("%Ln image(s)", 0, files.size());
+                    ask++;
+                }
+
+                if(!dirs.isEmpty())
+                {
+                    if(ask++)
+                        ques += ", ";
+                    ques += tr("%Ln dir(s)", 0, dirs.size());
+                }
+
+                if(!projs.isEmpty())
+                {
+                    if(ask++)
+                        ques += ", ";
+                    ques += tr("%Ln project(s)", 0, projs.size());
+                }
+
+                baton = QMessageBox::question(this, tr("Load?"), ques + "?" ,QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+            }
 
             if(baton == QMessageBox::Yes)
             {
