@@ -253,6 +253,8 @@ namespace imup
             }
 
             CommonsImgWidget *wgt = new CommonsImgWidget(cms_o, this);
+            wgt->setHidden(true);
+
             ui->ScrollLay->addWidget(wgt);
             wgtlist.insert(cms_o->uuid(), wgt);
         }
@@ -427,6 +429,7 @@ namespace imup
                     pdlg = 0;
 
                     ui->menuProject->setEnabled(true);
+
                     unsetCursor();
                     e->accept();
                 }
@@ -552,6 +555,10 @@ namespace imup
         {
             addFileObject(obj);
         }
+
+
+        foreach(CommonsImgWidget *w, wgtlist)
+            w->setHidden(false);
     }
 
     void imupWin::removeObject(CommonsImgWidget *imwgt)
