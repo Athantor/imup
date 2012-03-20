@@ -68,10 +68,11 @@ namespace imup {
         public:
             const QList<CommonsImgObject*>& objects() const;
 
-            void setProjectFilePath(const QString &ppath);
+            void setProjectFilePath(const QString &ppath, bool tmp = false);
             const QString& projectFilePath() const;
 
             bool isModified() const;
+            void setModified(bool is_mod);
 
         public slots:
             void addCommonsImgObj(CommonsImgObject * obj, bool write = true);
@@ -80,7 +81,7 @@ namespace imup {
             void removeCommonsImgObj(CommonsImgObject* obj);
 
             void loadFromFile(bool clear = true, const QString & whe = QString());
-            void saveToFile(CommonsImgObject* =0, const QString & whe = QString());
+            void saveToFile(CommonsImgObject* =0, const QString & whe = QString(), bool dirty = true);
 
             void cancelLoad();
 
@@ -92,7 +93,7 @@ namespace imup {
             ImageLoader *imldr;
             bool autosave;
             QSharedPointer<QSettings> proj_setts;
-            bool is_modifed, pre_load;
+            bool is_modifed, is_tmp;
 
             void clearObjs();
             void saveObjToFile(const CommonsImgObject *imob);

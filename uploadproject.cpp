@@ -27,7 +27,7 @@
 namespace imup
 {
     UploadProject::UploadProject(QObject *parent) :
-        QObject(parent), imldr(0), proj_setts(0), is_modifed(true), pre_load(false)
+        QObject(parent), imldr(0), proj_setts(0), is_modifed(true), is_tmp(true)
     {
         installEventFilter(this);
     }
@@ -50,9 +50,10 @@ namespace imup
         return objs;
     }
 
-    void UploadProject::setProjectFilePath(const QString &ppath)
+    void UploadProject::setProjectFilePath(const QString &ppath, bool tmp)
     {
         proj_path = ppath;
+        is_tmp = tmp;
     }
 
     const QString &UploadProject::projectFilePath() const
@@ -63,6 +64,11 @@ namespace imup
     bool UploadProject::isModified() const
     {
         return is_modifed;
+    }
+
+    void UploadProject::setModified(bool is_mod)
+    {
+        is_modifed = is_mod;
     }
 
     void UploadProject::addCommonsImgObj(CommonsImgObject *obj, bool write)
@@ -165,12 +171,11 @@ namespace imup
             imldr = 0;
         }
 
-        pre_load = is_modifed;
         imldr = new ImageLoader(filelist, uuids, false, this);
         imldr->start();
     }
 
-    void UploadProject::saveToFile(CommonsImgObject * ob, const QString & whe)
+    void UploadProject::saveToFile(CommonsImgObject * ob, const QString & whe, bool dirty)
     {
         if(whe.isEmpty() == false)
             proj_path = whe;
@@ -205,7 +210,8 @@ namespace imup
             saveObjToFile(ob);
         }
 
-        is_modifed = false;
+        if(!is_tmp)
+            is_modifed = dirty;
         proj_setts->sync();
     }
 
@@ -349,7 +355,7 @@ namespace imup
                         QApplication::postEvent(parent(), evt);
                     }
 
-                    is_modifed = pre_load;
+                    is_modifed = lc>0;
 
                     emit projectLoaded();
 

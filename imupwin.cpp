@@ -55,7 +55,7 @@ namespace imup
 
         //-----
 
-        proj->setProjectFilePath(unsaved_proj_path);
+        proj->setProjectFilePath(unsaved_proj_path, true);
         QFileInfo qfi(unsaved_proj_path);
         //                         [meta]
         if(qfi.exists() && qfi.size() > 6  &&
@@ -147,6 +147,7 @@ namespace imup
                 setWindowTitle(tr("%1 — „%2”").arg(QApplication::applicationName()).arg(QFileInfo(project_path).fileName()));
 
                 statusBar()->showMessage(tr("Saved %1 files to „%2”.").arg(proj->objects().size()).arg(project_path), 3000);
+                proj->setModified(false);
             }
             else
             {
@@ -171,7 +172,8 @@ namespace imup
         {
             if(proj->objects().size() > 0 && proj->isModified())
             {
-                if(QMessageBox::question(this, tr("Save unsaved?"), tr("There are unsaved changes. Do you wish to save them before opening other project?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+                if(QMessageBox::question(this, tr("Save unsaved?"), tr("There are unsaved changes. Do you wish to "
+                                                                       "save them before opening other project?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
                 {
                     if(saveProject() == false)
                         return false;
@@ -324,31 +326,19 @@ namespace imup
     {
         if(proj->objects().size() > 0 && proj->isModified())
         {
-            if(QMessageBox::question(this, tr("Save project"), tr("Do you wish to save this project under some fancy name, "
-                                                                  "so you'll be able to return to it later?"), QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+            if(QMessageBox::question(this, tr("Save project"), tr("Do you wish to save this project befre exiting?"),
+                                     QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
             {
-                if(saveProjectAs() == false)
-                    event->ignore();
-            }
-            else
-            {
-                if(QMessageBox::warning(this, tr("Save project"), tr("Really quit?<br><br>All your work will be <strong>L O S T</strong>!"), QMessageBox::No|QMessageBox::Yes) == QMessageBox::No)
+                if(saveProject() == false)
                 {
                     event->ignore();
                     return;
                 }
-                else
-                {
-                    proj->deleteLater();
-                    QFile::remove(unsaved_proj_path);
-                }
             }
         }
-        else
-        {
-            proj->deleteLater();
-            QFile::remove(unsaved_proj_path);
-        }
+
+        proj->deleteLater();
+        QFile::remove(unsaved_proj_path);
 
         event->accept();
     }
@@ -370,6 +360,8 @@ namespace imup
             CommonsImgWidget::CommonsImgWidgetEvent * evt= 0; ;
             ImageLoader::ImageLoaderEvent * ilevt = 0;
             UploadProject::UploadProjectEvent *upevt = 0;
+
+            bool showall = false;
 
             if( (evt = dynamic_cast<CommonsImgWidget::CommonsImgWidgetEvent*>(e)))
             {
@@ -432,6 +424,8 @@ namespace imup
 
                     unsetCursor();
                     e->accept();
+
+                    showall = true;
                 }
             }
             else if((upevt = dynamic_cast<UploadProject::UploadProjectEvent*>(e)))
@@ -481,8 +475,13 @@ namespace imup
                     unsetCursor();
                     setWindowTitle(tr("%1 — „%2”").arg(QApplication::applicationName()).arg(QFileInfo(project_path).fileName()));
                     e->accept();
+
+                    showall = true;
                 }
             }
+            if(showall)
+                foreach(CommonsImgWidget *w, wgtlist)
+                    w->setHidden(false);
         }
 
         return false;
@@ -555,10 +554,6 @@ namespace imup
         {
             addFileObject(obj);
         }
-
-
-        foreach(CommonsImgWidget *w, wgtlist)
-            w->setHidden(false);
     }
 
     void imupWin::removeObject(CommonsImgWidget *imwgt)
